@@ -5,6 +5,7 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import ThemeProvider from './components/theme';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
@@ -13,8 +14,10 @@ const root = ReactDOM.createRoot(
 );
 root.render(
     <React.StrictMode>
-        <CssBaseline/>
-        <App/>
+        <ThemeProvider>
+            <CssBaseline/>
+            <App/>
+        </ThemeProvider>
     </React.StrictMode>
 );
 
