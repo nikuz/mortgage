@@ -1,26 +1,41 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import {
+    Container,
+    Box,
+    TextField,
+} from '@mui/material';
+import { RentValues } from './types';
+import RentComponent from './components/rent';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App() {
+    const [years, setYears] = useState(15);
+    const [rentValues, setRentValues] = useState<RentValues>({
+        price: 2685,
+        annualIncrease: 2,
+    });
+
+    return (
+        <Container sx={{ p: 2 }}>
+            <Box sx={{ mb: 2 }}>
+                <TextField
+                    label="Years"
+                    value={years}
+                    type="number"
+                    variant="outlined"
+                    size="small"
+                    InputProps={{ inputProps: { min: 0, max: 30 } }}
+                    sx={{ minWidth: '100px' }}
+                    onChange={(event) => {
+                        setYears(Number(event.target.value));
+                    }}
+                />
+            </Box>
+
+            <RentComponent
+                years={years}
+                values={rentValues}
+                onValuesChange={setRentValues}
+            />
+        </Container>
+    );
 }
-
-export default App;
