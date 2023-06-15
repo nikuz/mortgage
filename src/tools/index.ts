@@ -29,3 +29,19 @@ export function calculateComplexPercentsSum(props: {
 
     return result;
 }
+
+// formula: https://www.bankrate.com/mortgages/mortgage-calculator/#how-mortgage-calculator-help
+export function calculateMortgagePayment(props: {
+    housePrice: number,
+    downPayment: number,
+    interestRate: number,
+    years: number,
+}) {
+    const loan = props.housePrice - props.downPayment;
+    const monthlyInterest = 0.05 / 12;
+    const paymentsAmount = props.years * 12; // years multiple months per year
+    const top = monthlyInterest * Math.pow(1 + monthlyInterest, paymentsAmount);
+    const bottom = Math.pow(1 + monthlyInterest, paymentsAmount) - 1;
+
+    return loan * (top / bottom);
+}

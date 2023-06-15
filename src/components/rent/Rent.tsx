@@ -1,19 +1,20 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
-    Box,
     Accordion,
     AccordionSummary,
     AccordionDetails,
     Typography,
-    TextField,
     Table,
     TableHead,
     TableBody,
     TableRow,
     TableCell,
+    Grid,
 } from '@mui/material';
+import { SxProps } from '@mui/system';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CurrencyField from '../currency-field';
+import PercentField from '../percent-field';
 import CurrencyValue from '../currency-value';
 import { RentValues } from '../../types';
 import {
@@ -24,6 +25,7 @@ import {
 interface Props {
     years: number,
     values: RentValues,
+    sx?: SxProps,
     onValuesChange: (value: RentValues) => void,
 }
 
@@ -31,6 +33,7 @@ export default function RentComponent(props: Props) {
     const {
         years,
         values,
+        sx,
         onValuesChange,
     } = props;
     const [expanded, setExpanded] = useState(false);
@@ -43,18 +46,30 @@ export default function RentComponent(props: Props) {
     }, [expanded]);
 
     return (
-        <Accordion expanded={expanded}>
+        <Accordion expanded={expanded} sx={sx}>
             <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 onClick={accordionClickHandler}
             >
-                <Box sx={{ display: 'flex', flexGrow:1, justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={3}>
                         <Typography variant="h6" sx={{ mr: 2 }}>Rent</Typography>
+                        <Typography>
+                            Total:&nbsp;
+                            <CurrencyValue
+                                value={calculateComplexPercentsSum({
+                                    value: values.price * 12,
+                                    percent: values.annualIncrease,
+                                    years,
+                                })}
+                            />
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={8}>
                         <CurrencyField
                             label="Price"
                             value={values.price}
-                            sx={{ mr: 2 }}
+                            sx={{ m: 1, mr: 2 }}
                             onFocus={() => {
                                 fieldFocusState.current = true;
                             }}
@@ -68,35 +83,25 @@ export default function RentComponent(props: Props) {
                                 });
                             }}
                         />
-                        <TextField
-                            label="Anual increase"
+                        <PercentField
+                            label="Annual increase"
                             value={values.annualIncrease}
-                            type="number"
-                            variant="outlined"
-                            size="small"
-                            InputProps={{ inputProps: { min: 0 } }}
-                            sx={{ minWidth: '100px' }}
-                            onChange={(event) => {
+                            sx={{ m: 1, minWidth: '150px' }}
+                            onFocus={() => {
+                                fieldFocusState.current = true;
+                            }}
+                            onBlur={() => {
+                                fieldFocusState.current = false;
+                            }}
+                            onChange={(value) => {
                                 onValuesChange({
                                     ...values,
-                                    annualIncrease: Number(event.target.value),
+                                    annualIncrease: value,
                                 });
                             }}
                         />
-                    </Box>
-                    <Box sx={{ mr: 2 }}>
-                        <Typography>
-                            Total:
-                            <CurrencyValue
-                                value={calculateComplexPercentsSum({
-                                    value: values.price * 12,
-                                    percent: values.annualIncrease,
-                                    years,
-                                })}
-                            />
-                        </Typography>
-                    </Box>
-                </Box>
+                    </Grid>
+                </Grid>
             </AccordionSummary>
             <AccordionDetails>
                 <Table size="small">

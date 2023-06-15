@@ -8,8 +8,8 @@ interface Props {
     value: number,
     sx?: SxProps,
     onChange: (value: number) => void,
-    onFocus: () => void,
-    onBlur: () => void,
+    onFocus?: () => void,
+    onBlur?: () => void,
 }
 
 export default function CurrencyField(props: Props) {

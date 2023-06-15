@@ -4,14 +4,20 @@ import {
     Box,
     TextField,
 } from '@mui/material';
-import { RentValues } from './types';
+import { RentValues, MortgageValues } from './types';
 import RentComponent from './components/rent';
+import MortgageComponent from './components/mortgage';
 
 export default function App() {
     const [years, setYears] = useState(15);
     const [rentValues, setRentValues] = useState<RentValues>({
         price: 2685,
         annualIncrease: 2,
+    });
+    const [mortgageValues, setMortgageValues] = useState<MortgageValues>({
+        housePrice: 950000,
+        downPayment: 250000,
+        interestRate: 5,
     });
 
     return (
@@ -34,7 +40,14 @@ export default function App() {
             <RentComponent
                 years={years}
                 values={rentValues}
+                sx={{ mb: 3 }}
                 onValuesChange={setRentValues}
+            />
+
+            <MortgageComponent
+                years={years}
+                values={mortgageValues}
+                onValuesChange={setMortgageValues}
             />
         </Container>
     );
