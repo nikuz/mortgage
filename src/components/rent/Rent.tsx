@@ -18,8 +18,8 @@ import PercentField from '../percent-field';
 import CurrencyValue from '../currency-value';
 import { RentValues } from '../../types';
 import {
-    calculateComplexPercents,
-    calculateComplexPercentsSum,
+    calculateCompoundPercents,
+    calculateCompoundPercentsSum,
 } from '../../tools';
 
 interface Props {
@@ -57,7 +57,7 @@ export default function RentComponent(props: Props) {
                         <Typography>
                             Total:&nbsp;
                             <CurrencyValue
-                                value={calculateComplexPercentsSum({
+                                value={-calculateCompoundPercentsSum({
                                     value: values.price * 12,
                                     percent: values.annualIncrease,
                                     years,
@@ -76,10 +76,10 @@ export default function RentComponent(props: Props) {
                             onBlur={() => {
                                 fieldFocusState.current = false;
                             }}
-                            onChange={(newPrice: number) => {
+                            onChange={(value: number) => {
                                 onValuesChange({
                                     ...values,
-                                    price: newPrice,
+                                    price: value,
                                 });
                             }}
                         />
@@ -122,7 +122,7 @@ export default function RentComponent(props: Props) {
                                 </TableCell>
                                 <TableCell align="right">
                                     <CurrencyValue
-                                        value={calculateComplexPercents({
+                                        value={calculateCompoundPercents({
                                             value: values.price,
                                             percent: values.annualIncrease,
                                             years: key,
@@ -131,7 +131,7 @@ export default function RentComponent(props: Props) {
                                 </TableCell>
                                 <TableCell align="right">
                                     <CurrencyValue
-                                        value={calculateComplexPercents({
+                                        value={calculateCompoundPercents({
                                             value: values.price * 12,
                                             percent: values.annualIncrease,
                                             years: key,

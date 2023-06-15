@@ -18,8 +18,8 @@ import PercentField from '../percent-field';
 import CurrencyValue from '../currency-value';
 import { MortgageValues } from '../../types';
 import {
-    calculateComplexPercents,
-    calculateComplexPercentsSum,
+    calculateCompoundPercents,
+    calculateCompoundPercentsSum,
     calculateMortgagePayment,
 } from '../../tools';
 
@@ -52,12 +52,12 @@ export default function MortgageComponent(props: Props) {
     const interest = useMemo(() => (
         monthlyPayment * 12 * years - (values.housePrice - values.downPayment)
     ), [values, years, monthlyPayment]);
-    const totalStrata = useMemo(() => calculateComplexPercentsSum({
+    const totalStrata = useMemo(() => calculateCompoundPercentsSum({
         value: strata * 12,
         percent: strataAnnualIncrease,
         years: years,
     }), [strata, strataAnnualIncrease, years]);
-    const totalTaxes = useMemo(() => calculateComplexPercentsSum({
+    const totalTaxes = useMemo(() => calculateCompoundPercentsSum({
         value: taxes,
         percent: taxesAnnualIncrease,
         years: years,
@@ -65,7 +65,7 @@ export default function MortgageComponent(props: Props) {
     const totalHouseMaintenance = useMemo(() => {
         let result = 0;
         for (let i = 0; i < years; i++) {
-            const housePrice = calculateComplexPercents({
+            const housePrice = calculateCompoundPercents({
                 value: values.housePrice,
                 percent: housePriceAnnualIncrease,
                 years: i,
@@ -74,7 +74,7 @@ export default function MortgageComponent(props: Props) {
         }
         return result;
     }, [houseMaintenance, housePriceAnnualIncrease, values, years]);
-    const finalHousePrice = useMemo(() => calculateComplexPercents({
+    const finalHousePrice = useMemo(() => calculateCompoundPercents({
         value: values.housePrice,
         percent: housePriceAnnualIncrease,
         years: years,

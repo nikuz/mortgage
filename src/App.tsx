@@ -3,10 +3,16 @@ import {
     Container,
     Box,
     TextField,
+    Typography,
 } from '@mui/material';
-import { RentValues, MortgageValues } from './types';
+import {
+    RentValues,
+    MortgageValues,
+    InvestmentValues,
+} from './types';
 import RentComponent from './components/rent';
 import MortgageComponent from './components/mortgage';
+import InvestmentComponent from './components/investment';
 
 export default function App() {
     const [years, setYears] = useState(15);
@@ -19,9 +25,16 @@ export default function App() {
         downPayment: 250000,
         interestRate: 5,
     });
+    const [investmentValues, setInvestmentValues] = useState<InvestmentValues>({
+        startingAmount: 0,
+        returnRate: 8,
+    });
 
     return (
         <Container sx={{ p: 2 }}>
+            <Typography variant="h2" sx={{ mb: 3 }}>
+                Mortgage calculation helper
+            </Typography>
             <Box sx={{ mb: 2 }}>
                 <TextField
                     label="Years"
@@ -47,7 +60,16 @@ export default function App() {
             <MortgageComponent
                 years={years}
                 values={mortgageValues}
+                sx={{ mb: 3 }}
                 onValuesChange={setMortgageValues}
+            />
+
+            <InvestmentComponent
+                years={years}
+                values={investmentValues}
+                rentValues={rentValues}
+                mortgageValues={mortgageValues}
+                onValuesChange={setInvestmentValues}
             />
         </Container>
     );

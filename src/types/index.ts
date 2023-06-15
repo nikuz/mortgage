@@ -8,3 +8,8 @@ export interface MortgageValues {
     downPayment: number,
     interestRate: number,
 }
+
+export interface InvestmentValues {
+    startingAmount: number,
+    returnRate: number,
+}

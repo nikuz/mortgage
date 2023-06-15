@@ -1,4 +1,4 @@
-export function calculateComplexPercents(props: {
+export function calculateCompoundPercents(props: {
     value: number,
     percent: number,
     years: number,
@@ -12,7 +12,7 @@ export function calculateComplexPercents(props: {
     return Math.round(result);
 }
 
-export function calculateComplexPercentsSum(props: {
+export function calculateCompoundPercentsSum(props: {
     value: number,
     percent: number,
     years: number,
@@ -20,7 +20,7 @@ export function calculateComplexPercentsSum(props: {
     let result = 0;
 
     for (let i = 0; i < props.years; i++) {
-        result += calculateComplexPercents({
+        result += calculateCompoundPercents({
             value: props.value,
             percent: props.percent,
             years: i,
@@ -44,4 +44,24 @@ export function calculateMortgagePayment(props: {
     const bottom = Math.pow(1 + monthlyInterest, paymentsAmount) - 1;
 
     return loan * (top / bottom);
+}
+
+export function calculateCompoundPercentsWithContributions(props: {
+    value: number,
+    percent: number,
+    years: number,
+    contribution: number,
+}) {
+    let result = props.value;
+    const monthPerYear = 12;
+    const monthlyPercent = props.percent / monthPerYear;
+
+    for (let i = 0; i < props.years; i++) {
+        for (let j = 0; j < monthPerYear; j++) {
+            const monthlyInterest = result * (monthlyPercent / 100);
+            result = result + monthlyInterest + props.contribution;
+        }
+    }
+
+    return Math.round(result);
 }
