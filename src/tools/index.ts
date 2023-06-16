@@ -38,7 +38,7 @@ export function calculateMortgagePayment(props: {
     years: number,
 }) {
     const loan = props.housePrice - props.downPayment;
-    const monthlyInterest = 0.05 / 12;
+    const monthlyInterest = props.interestRate / 100 / 12;
     const paymentsAmount = props.years * 12; // years multiple months per year
     const top = monthlyInterest * Math.pow(1 + monthlyInterest, paymentsAmount);
     const bottom = Math.pow(1 + monthlyInterest, paymentsAmount) - 1;

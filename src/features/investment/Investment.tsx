@@ -13,19 +13,19 @@ import {
 } from '@mui/material';
 import { SxProps } from '@mui/system';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CurrencyField from '../currency-field';
-import PercentField from '../percent-field';
-import CurrencyValue from '../currency-value';
-import {
-    RentValues,
-    MortgageValues,
-    InvestmentValues,
-} from '../../types';
+import CurrencyField from '../../components/currency-field';
+import PercentField from '../../components/percent-field';
+import CurrencyValue from '../../components/currency-value';
 import {
     calculateCompoundPercents,
     calculateCompoundPercentsWithContributions,
     calculateMortgagePayment,
 } from '../../tools';
+import {
+    RentValues,
+    MortgageValues,
+    InvestmentValues,
+} from '../../types';
 
 interface Props {
     years: number,

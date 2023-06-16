@@ -6,8 +6,9 @@ import { NumericFormat, NumericFormatProps } from 'react-number-format';
 interface Props {
     label?: string,
     value: number,
+    disabled?: boolean,
     sx?: SxProps,
-    onChange: (value: number) => void,
+    onChange?: (value: number) => void,
     onFocus?: () => void,
     onBlur?: () => void,
 }
@@ -16,6 +17,7 @@ export default function CurrencyField(props: Props) {
     const {
         label,
         value,
+        disabled,
         sx,
         onChange,
         onFocus,
@@ -28,6 +30,7 @@ export default function CurrencyField(props: Props) {
             value={value}
             variant="outlined"
             size="small"
+            disabled={disabled}
             sx={sx}
             onFocus={onFocus}
             onBlur={onBlur}
@@ -35,7 +38,7 @@ export default function CurrencyField(props: Props) {
                 inputComponent: NumericFormatCustom as any,
             }}
             onChange={(event) => {
-                onChange(Number(event.target.value));
+                onChange?.(Number(event.target.value));
             }}
         />
     );

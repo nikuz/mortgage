@@ -10,32 +10,20 @@ import {
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import BrightnessHighIcon from '@mui/icons-material/BrightnessHigh';
 import { ThemeContext } from './components/theme';
-import RentComponent from './components/rent';
-import MortgageComponent from './components/mortgage';
-import InvestmentComponent from './components/investment';
-import {
-    RentValues,
-    MortgageValues,
-    InvestmentValues,
-} from './types';
+import RentComponent from './features/rent';
+import MortgageComponent from './features/mortgage';
+// import InvestmentComponent from './features/investment';
+import CurrencyField from './components/currency-field';
+import PercentField from './components/percent-field';
 
 export default function App() {
     const theme = useTheme();
     const themeContext = useContext(ThemeContext);
+    const [savings, setSavings] = useState(250000);
+    const [budget, setBudget] = useState(10000);
+    const [budgetIncreaseRate, setBudgetIncreaseRate] = useState(3);
+    const [investmentReturnRate, setInvestmentReturnRate] = useState(8);
     const [years, setYears] = useState(15);
-    const [rentValues, setRentValues] = useState<RentValues>({
-        price: 2685,
-        annualIncrease: 2,
-    });
-    const [mortgageValues, setMortgageValues] = useState<MortgageValues>({
-        housePrice: 950000,
-        downPayment: 250000,
-        interestRate: 5,
-    });
-    const [investmentValues, setInvestmentValues] = useState<InvestmentValues>({
-        startingAmount: 0,
-        returnRate: 8,
-    });
 
     return (
         <Container sx={{ p: 2 }}>
@@ -50,9 +38,19 @@ export default function App() {
                         },
                     }}
                 >
-                    Mortgage calculation helper
+                    Buy vs Rent calculator
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        ml: 3,
+                        pt: 3,
+                        [theme.breakpoints.down('md')]: {
+                            pt: 1,
+                        },
+                    }}
+                >
                     <IconButton
                         color="inherit"
                         onClick={themeContext.toggleTheme}
@@ -66,15 +64,39 @@ export default function App() {
                     </IconButton>
                 </Box>
             </Box>
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: 1 }}>
+                <CurrencyField
+                    label="Savings"
+                    value={savings}
+                    sx={{ mb: 2, mr: 2 }}
+                    onChange={setSavings}
+                />
+                <CurrencyField
+                    label="Monthly budget"
+                    value={budget}
+                    sx={{ mb: 2, mr: 2 }}
+                    onChange={setBudget}
+                />
+                <PercentField
+                    label="Budget increase rate"
+                    value={budgetIncreaseRate}
+                    sx={{ mb: 2, mr: 2, minWidth: '150px' }}
+                    onChange={setBudgetIncreaseRate}
+                />
+                <PercentField
+                    label="Investment return rate"
+                    value={investmentReturnRate}
+                    sx={{ mb: 2, mr: 2, minWidth: '150px' }}
+                    onChange={setInvestmentReturnRate}
+                />
                 <TextField
                     label="Years"
                     value={years}
                     type="number"
                     variant="outlined"
                     size="small"
-                    InputProps={{ inputProps: { min: 0, max: 30 } }}
-                    sx={{ minWidth: '100px' }}
+                    InputProps={{ inputProps: { min: 1, max: 30 } }}
+                    sx={{ mb: 2, minWidth: '150px' }}
                     onChange={(event) => {
                         setYears(Number(event.target.value));
                     }}
@@ -82,27 +104,31 @@ export default function App() {
             </Box>
 
             <RentComponent
+                savings={savings}
+                budget={budget}
+                budgetIncreaseRate={budgetIncreaseRate}
+                investmentReturnRate={investmentReturnRate}
                 years={years}
-                values={rentValues}
                 sx={{ mb: 3 }}
-                onValuesChange={setRentValues}
             />
 
             <MortgageComponent
+                savings={savings}
+                budget={budget}
+                budgetIncreaseRate={budgetIncreaseRate}
+                investmentReturnRate={investmentReturnRate}
                 years={years}
-                values={mortgageValues}
                 sx={{ mb: 3 }}
-                onValuesChange={setMortgageValues}
             />
 
-            <InvestmentComponent
-                years={years}
-                values={investmentValues}
-                rentValues={rentValues}
-                mortgageValues={mortgageValues}
-                sx={{ mb: 2 }}
-                onValuesChange={setInvestmentValues}
-            />
+            {/*<InvestmentComponent*/}
+            {/*    years={years}*/}
+            {/*    values={investmentValues}*/}
+            {/*    rentValues={rentValues}*/}
+            {/*    mortgageValues={mortgageValues}*/}
+            {/*    sx={{ mb: 2 }}*/}
+            {/*    onValuesChange={setInvestmentValues}*/}
+            {/*/>*/}
         </Container>
     );
 }

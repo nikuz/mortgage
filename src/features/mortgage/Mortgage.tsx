@@ -13,30 +13,35 @@ import {
 } from '@mui/material';
 import { SxProps } from '@mui/system';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CurrencyField from '../currency-field';
-import PercentField from '../percent-field';
-import CurrencyValue from '../currency-value';
-import { MortgageValues } from '../../types';
+import CurrencyField from '../../components/currency-field';
+import PercentField from '../../components/percent-field';
+import CurrencyValue from '../../components/currency-value';
 import {
     calculateCompoundPercents,
-    calculateCompoundPercentsSum,
+    calculateCompoundPercentsSum, calculateCompoundPercentsWithContributions,
     calculateMortgagePayment,
 } from '../../tools';
 
 interface Props {
+    savings: number,
+    budget: number,
+    budgetIncreaseRate: number,
+    investmentReturnRate: number,
     years: number,
-    values: MortgageValues,
     sx?: SxProps,
-    onValuesChange: (value: MortgageValues) => void,
 }
 
 export default function MortgageComponent(props: Props) {
     const {
+        savings,
+        budget,
+        budgetIncreaseRate,
+        investmentReturnRate,
         years,
-        values,
         sx,
-        onValuesChange,
     } = props;
+    const [housePrice, setHousePrice] = useState(950000);
+    const [interestRate, setInterestRate] = useState(5);
     const [strata, setStrata] = useState(500);
     const [strataAnnualIncrease, setStrataAnnualIncrease] = useState(3);
     const [taxes, setTaxes] = useState(1500);
@@ -46,12 +51,14 @@ export default function MortgageComponent(props: Props) {
     const [expanded, setExpanded] = useState(false);
     const fieldFocusState = useRef<boolean>(false);
     const monthlyPayment = useMemo(() => calculateMortgagePayment({
-        ...values,
+        housePrice,
+        downPayment: savings,
+        interestRate,
         years,
-    }), [values, years]);
+    }), [housePrice, savings, interestRate, years]);
     const interest = useMemo(() => (
-        monthlyPayment * 12 * years - (values.housePrice - values.downPayment)
-    ), [values, years, monthlyPayment]);
+        monthlyPayment * 12 * years - (housePrice - savings)
+    ), [housePrice, savings, years, monthlyPayment]);
     const totalStrata = useMemo(() => calculateCompoundPercentsSum({
         value: strata * 12,
         percent: strataAnnualIncrease,
@@ -65,23 +72,78 @@ export default function MortgageComponent(props: Props) {
     const totalHouseMaintenance = useMemo(() => {
         let result = 0;
         for (let i = 0; i < years; i++) {
-            const housePrice = calculateCompoundPercents({
-                value: values.housePrice,
+            const price = calculateCompoundPercents({
+                value: housePrice,
                 percent: housePriceAnnualIncrease,
                 years: i,
             });
-            result += housePrice * (houseMaintenance / 100);
+            result += price * (houseMaintenance / 100);
         }
         return result;
-    }, [houseMaintenance, housePriceAnnualIncrease, values, years]);
+    }, [houseMaintenance, housePriceAnnualIncrease, housePrice, years]);
     const finalHousePrice = useMemo(() => calculateCompoundPercents({
-        value: values.housePrice,
+        value: housePrice,
         percent: housePriceAnnualIncrease,
         years: years,
-    }), [values, housePriceAnnualIncrease, years]);
+    }), [housePrice, housePriceAnnualIncrease, years]);
     const overallExpenses = useMemo(() => (
         interest + totalStrata + totalTaxes + totalHouseMaintenance
     ), [interest, totalStrata, totalTaxes, totalHouseMaintenance]);
+
+    const calculateMonthlyExpenses = useCallback((year: number) => {
+        const strataCoast = calculateCompoundPercents({
+            value: strata,
+            percent: strataAnnualIncrease,
+            years: year,
+        });
+        const yearlyTaxes = calculateCompoundPercents({
+            value: taxes,
+            percent: taxesAnnualIncrease,
+            years: year,
+        });
+        const monthlyTaxes = yearlyTaxes / 12;
+        const yearlyHousePrice = calculateCompoundPercents({
+            value: housePrice,
+            percent: housePriceAnnualIncrease,
+            years: year,
+        });
+        const maintenance = yearlyHousePrice * (houseMaintenance / 100) / 12;
+
+        return monthlyPayment + strataCoast + monthlyTaxes + maintenance;
+    }, [
+        monthlyPayment,
+        strata,
+        strataAnnualIncrease,
+        taxes,
+        taxesAnnualIncrease,
+        housePrice,
+        housePriceAnnualIncrease,
+        houseMaintenance,
+    ]);
+
+    const calculateMonthlyInvestment = useCallback((year: number) => {
+        const expenses = calculateMonthlyExpenses(year);
+        const adjustedBudget = calculateCompoundPercents({
+            value: budget,
+            percent: budgetIncreaseRate,
+            years: year,
+        });
+
+        return Math.max(adjustedBudget - expenses, 0);
+    }, [budget, budgetIncreaseRate, calculateMonthlyExpenses]);
+
+    const calculateInvestmentBalance = useCallback((years: number) => {
+        let result = savings;
+        for (let i = 1; i <= years; i++) {
+            result = calculateCompoundPercentsWithContributions({
+                value: result,
+                percent: investmentReturnRate,
+                years: 1,
+                contribution: calculateMonthlyInvestment(i),
+            });
+        }
+        return result;
+    }, [investmentReturnRate, savings, calculateMonthlyInvestment]);
 
     const accordionClickHandler = useCallback(() => {
         if (!fieldFocusState.current) {
@@ -100,17 +162,30 @@ export default function MortgageComponent(props: Props) {
                         <Typography variant="h6" sx={{ mr: 2 }}>Mortgage</Typography>
                         <Typography>
                             Monthly payment:&nbsp;
-                            <CurrencyValue value={monthlyPayment} />
+                            <CurrencyValue
+                                value={monthlyPayment}
+                                sx={{ fontWeight: 'bold' }}
+                            />
                         </Typography>
                         <Typography>
-                            Total interest:&nbsp;
-                            <CurrencyValue value={interest} />
+                            Overall expenses:&nbsp;
+                            <CurrencyValue
+                                value={-overallExpenses}
+                                sx={{ fontWeight: 'bold' }}
+                            />
+                        </Typography>
+                        <Typography>
+                            Balance in {years} years:&nbsp;
+                            <CurrencyValue
+                                value={calculateInvestmentBalance(years) + finalHousePrice}
+                                sx={{ fontWeight: 'bold' }}
+                            />
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={8}>
                         <CurrencyField
                             label="House Price"
-                            value={values.housePrice}
+                            value={housePrice}
                             sx={{ m: 1, mr: 2 }}
                             onFocus={() => {
                                 fieldFocusState.current = true;
@@ -118,51 +193,18 @@ export default function MortgageComponent(props: Props) {
                             onBlur={() => {
                                 fieldFocusState.current = false;
                             }}
-                            onChange={(value: number) => {
-                                onValuesChange({
-                                    ...values,
-                                    housePrice: value,
-                                });
-                            }}
+                            onChange={setHousePrice}
                         />
                         <CurrencyField
                             label="Down payment"
-                            value={values.downPayment}
+                            value={savings}
+                            disabled={true}
                             sx={{ m: 1, mr: 2 }}
-                            onFocus={() => {
-                                fieldFocusState.current = true;
-                            }}
-                            onBlur={() => {
-                                fieldFocusState.current = false;
-                            }}
-                            onChange={(value: number) => {
-                                onValuesChange({
-                                    ...values,
-                                    downPayment: value,
-                                });
-                            }}
-                        />
-                        <PercentField
-                            label="Interest rate"
-                            value={values.interestRate}
-                            sx={{ m: 1, minWidth: '150px' }}
-                            onFocus={() => {
-                                fieldFocusState.current = true;
-                            }}
-                            onBlur={() => {
-                                fieldFocusState.current = false;
-                            }}
-                            onChange={(value) => {
-                                onValuesChange({
-                                    ...values,
-                                    interestRate: value,
-                                });
-                            }}
                         />
                     </Grid>
                 </Grid>
             </AccordionSummary>
-            <AccordionDetails>
+            <AccordionDetails sx={{ overflow: 'auto' }}>
                 <Table size="small">
                     <TableHead>
                         <TableRow>
@@ -171,6 +213,19 @@ export default function MortgageComponent(props: Props) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
+                        <TableRow>
+                            <TableCell sx={{ pl: 0 }}>
+                                <PercentField
+                                    label="Interest rate"
+                                    value={interestRate}
+                                    sx={{ m: 1, minWidth: '150px' }}
+                                    onChange={setInterestRate}
+                                />
+                            </TableCell>
+                            <TableCell align="right">
+                                <CurrencyValue value={interest} />
+                            </TableCell>
+                        </TableRow>
                         <TableRow>
                             <TableCell sx={{ pl: 0 }}>
                                 <CurrencyField
@@ -235,32 +290,47 @@ export default function MortgageComponent(props: Props) {
                                 <CurrencyValue value={finalHousePrice} />
                             </TableCell>
                         </TableRow>
+                    </TableBody>
+                </Table>
+                <Table size="small">
+                    <TableHead>
                         <TableRow>
-                            <TableCell>
-                                <Typography variant="h6">
-                                    Overall expenses:
-                                </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                                <CurrencyValue
-                                    value={overallExpenses}
-                                    sx={{ fontWeight: 'bold' }}
-                                />
-                            </TableCell>
+                            <TableCell>Year</TableCell>
+                            <TableCell>Budget</TableCell>
+                            <TableCell>Expenses</TableCell>
+                            <TableCell align="right">Monthly Investment</TableCell>
+                            <TableCell align="right">Investment balance</TableCell>
                         </TableRow>
-                        <TableRow>
-                            <TableCell>
-                                <Typography variant="h6">
-                                    Income:
-                                </Typography>
-                            </TableCell>
-                            <TableCell align="right">
-                                <CurrencyValue
-                                    value={finalHousePrice - overallExpenses}
-                                    sx={{ fontWeight: 'bold' }}
-                                />
-                            </TableCell>
-                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {[...Array(years)].map((item, key) => {
+                            const adjustedBudget = calculateCompoundPercents({
+                                value: budget,
+                                percent: budgetIncreaseRate,
+                                years: key,
+                            });
+                            return (
+                                <TableRow key={key} >
+                                    <TableCell>
+                                        <Typography sx={{ mr: 5 }} color="grey">
+                                            {new Date().getFullYear() + key}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <CurrencyValue value={adjustedBudget} />
+                                    </TableCell>
+                                    <TableCell>
+                                        <CurrencyValue value={calculateMonthlyExpenses(key)} />
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <CurrencyValue value={calculateMonthlyInvestment(key)} />
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <CurrencyValue value={calculateInvestmentBalance(key + 1)} />
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
                     </TableBody>
                 </Table>
             </AccordionDetails>
