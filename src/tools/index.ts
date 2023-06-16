@@ -1,3 +1,4 @@
+// doesn't increase the result value if year is 0 (zero)
 export function calculateCompoundPercents(props: {
     value: number,
     percent: number,
@@ -12,6 +13,8 @@ export function calculateCompoundPercents(props: {
     return Math.round(result);
 }
 
+// Sum function calculates compound percentage for each year and sums the results
+// The first year (0) value is flat, it doesn't have percentage increase
 export function calculateCompoundPercentsSum(props: {
     value: number,
     percent: number,

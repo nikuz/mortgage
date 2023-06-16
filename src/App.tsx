@@ -9,12 +9,12 @@ import {
 } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import BrightnessHighIcon from '@mui/icons-material/BrightnessHigh';
-import { ThemeContext } from './components/theme';
-import RentComponent from './features/rent';
-import MortgageComponent from './features/mortgage';
-// import InvestmentComponent from './features/investment';
-import CurrencyField from './components/currency-field';
-import PercentField from './components/percent-field';
+import {
+    PercentField,
+    CurrencyField,
+    ThemeContext,
+} from 'src/components';
+import { RentFeature, MortgageFeature } from 'src/features';
 
 export default function App() {
     const theme = useTheme();
@@ -103,7 +103,7 @@ export default function App() {
                 />
             </Box>
 
-            <RentComponent
+            <RentFeature
                 savings={savings}
                 budget={budget}
                 budgetIncreaseRate={budgetIncreaseRate}
@@ -112,7 +112,7 @@ export default function App() {
                 sx={{ mb: 3 }}
             />
 
-            <MortgageComponent
+            <MortgageFeature
                 savings={savings}
                 budget={budget}
                 budgetIncreaseRate={budgetIncreaseRate}
@@ -120,15 +120,6 @@ export default function App() {
                 years={years}
                 sx={{ mb: 3 }}
             />
-
-            {/*<InvestmentComponent*/}
-            {/*    years={years}*/}
-            {/*    values={investmentValues}*/}
-            {/*    rentValues={rentValues}*/}
-            {/*    mortgageValues={mortgageValues}*/}
-            {/*    sx={{ mb: 2 }}*/}
-            {/*    onValuesChange={setInvestmentValues}*/}
-            {/*/>*/}
         </Container>
     );
 }

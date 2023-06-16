@@ -13,14 +13,17 @@ import {
 } from '@mui/material';
 import { SxProps } from '@mui/system';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CurrencyField from '../../components/currency-field';
-import PercentField from '../../components/percent-field';
-import CurrencyValue from '../../components/currency-value';
+import {
+    CurrencyField,
+    PercentField,
+    CurrencyValue,
+    HelpIcon,
+} from 'src/components';
 import {
     calculateCompoundPercents,
     calculateCompoundPercentsSum,
     calculateCompoundPercentsWithContributions,
-} from '../../tools';
+} from 'src/tools';
 
 interface Props {
     savings: number,
@@ -31,7 +34,7 @@ interface Props {
     sx?: SxProps,
 }
 
-export default function RentComponent(props: Props) {
+export default function RentFeature(props: Props) {
     const {
         savings,
         budget,
@@ -136,11 +139,16 @@ export default function RentComponent(props: Props) {
                     <TableHead>
                         <TableRow>
                             <TableCell>Year</TableCell>
-                            <TableCell>Budget</TableCell>
-                            <TableCell align="right">Rent price</TableCell>
-                            <TableCell align="right">Rent price per year</TableCell>
-                            <TableCell align="right">Investment</TableCell>
-                            <TableCell align="right">Investment balance</TableCell>
+                            <TableCell>Monthly Budget</TableCell>
+                            <TableCell align="right">Monthly rent</TableCell>
+                            <TableCell align="right">Monthly Investment</TableCell>
+                            <TableCell align="right">
+                                Investment balance
+                                <HelpIcon
+                                    title="Savings as a start balance"
+                                    sx={{ verticalAlign: 'middle', ml: 1 }}
+                                />
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -167,15 +175,6 @@ export default function RentComponent(props: Props) {
                                     </TableCell>
                                     <TableCell align="right">
                                         <CurrencyValue value={rent} />
-                                    </TableCell>
-                                    <TableCell align="right">
-                                        <CurrencyValue
-                                            value={calculateCompoundPercents({
-                                                value: rentPrice * 12,
-                                                percent: rentAnnualIncrease,
-                                                years: key,
-                                            })}
-                                        />
                                     </TableCell>
                                     <TableCell align="right">
                                         <CurrencyValue value={Math.max(adjustedBudget - rent, 0)} />

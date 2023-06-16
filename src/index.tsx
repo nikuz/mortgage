@@ -5,7 +5,7 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import ThemeProvider from './components/theme';
+import { ThemeProvider } from 'src/components';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

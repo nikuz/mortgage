@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo, useCallback } from 'react';
 import {
+    Box,
     Accordion,
     AccordionSummary,
     AccordionDetails,
@@ -13,14 +14,17 @@ import {
 } from '@mui/material';
 import { SxProps } from '@mui/system';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CurrencyField from '../../components/currency-field';
-import PercentField from '../../components/percent-field';
-import CurrencyValue from '../../components/currency-value';
+import {
+    CurrencyField,
+    PercentField,
+    CurrencyValue, HelpIcon,
+} from 'src/components';
 import {
     calculateCompoundPercents,
-    calculateCompoundPercentsSum, calculateCompoundPercentsWithContributions,
+    calculateCompoundPercentsSum,
+    calculateCompoundPercentsWithContributions,
     calculateMortgagePayment,
-} from '../../tools';
+} from 'src/tools';
 
 interface Props {
     savings: number,
@@ -31,7 +35,7 @@ interface Props {
     sx?: SxProps,
 }
 
-export default function MortgageComponent(props: Props) {
+export default function MortgageFeature(props: Props) {
     const {
         savings,
         budget,
@@ -84,42 +88,45 @@ export default function MortgageComponent(props: Props) {
     const finalHousePrice = useMemo(() => calculateCompoundPercents({
         value: housePrice,
         percent: housePriceAnnualIncrease,
-        years: years,
+        // reduce the amount of years by one, to not
+        // count the first year when you bought a house,
+        // the house price will increase next year
+        years: years - 1,
     }), [housePrice, housePriceAnnualIncrease, years]);
     const overallExpenses = useMemo(() => (
         interest + totalStrata + totalTaxes + totalHouseMaintenance
     ), [interest, totalStrata, totalTaxes, totalHouseMaintenance]);
 
-    const calculateMonthlyExpenses = useCallback((year: number) => {
-        const strataCoast = calculateCompoundPercents({
-            value: strata,
-            percent: strataAnnualIncrease,
-            years: year,
-        });
+    const getMonthlyStrataCoast = useCallback((year: number) => calculateCompoundPercents({
+        value: strata,
+        percent: strataAnnualIncrease,
+        years: year,
+    }), [strata, strataAnnualIncrease]);
+
+    const getMonthlyTaxes = useCallback((year: number) => {
         const yearlyTaxes = calculateCompoundPercents({
             value: taxes,
             percent: taxesAnnualIncrease,
             years: year,
         });
-        const monthlyTaxes = yearlyTaxes / 12;
+        return yearlyTaxes / 12;
+    }, [taxes, taxesAnnualIncrease]);
+
+    const getMonthlyMaintenance = useCallback((year: number) => {
         const yearlyHousePrice = calculateCompoundPercents({
             value: housePrice,
             percent: housePriceAnnualIncrease,
             years: year,
         });
-        const maintenance = yearlyHousePrice * (houseMaintenance / 100) / 12;
+        return yearlyHousePrice * (houseMaintenance / 100) / 12;
+    }, [housePrice, houseMaintenance, housePriceAnnualIncrease]);
 
+    const calculateMonthlyExpenses = useCallback((year: number) => {
+        const strataCoast = getMonthlyStrataCoast(year);
+        const monthlyTaxes = getMonthlyTaxes(year);
+        const maintenance = getMonthlyMaintenance(year);
         return monthlyPayment + strataCoast + monthlyTaxes + maintenance;
-    }, [
-        monthlyPayment,
-        strata,
-        strataAnnualIncrease,
-        taxes,
-        taxesAnnualIncrease,
-        housePrice,
-        housePriceAnnualIncrease,
-        houseMaintenance,
-    ]);
+    }, [monthlyPayment, getMonthlyStrataCoast, getMonthlyTaxes, getMonthlyMaintenance]);
 
     const calculateMonthlyInvestment = useCallback((year: number) => {
         const expenses = calculateMonthlyExpenses(year);
@@ -133,8 +140,8 @@ export default function MortgageComponent(props: Props) {
     }, [budget, budgetIncreaseRate, calculateMonthlyExpenses]);
 
     const calculateInvestmentBalance = useCallback((years: number) => {
-        let result = savings;
-        for (let i = 1; i <= years; i++) {
+        let result = 0;
+        for (let i = 0; i <= years; i++) {
             result = calculateCompoundPercentsWithContributions({
                 value: result,
                 percent: investmentReturnRate,
@@ -143,7 +150,7 @@ export default function MortgageComponent(props: Props) {
             });
         }
         return result;
-    }, [investmentReturnRate, savings, calculateMonthlyInvestment]);
+    }, [investmentReturnRate, calculateMonthlyInvestment]);
 
     const accordionClickHandler = useCallback(() => {
         if (!fieldFocusState.current) {
@@ -296,8 +303,8 @@ export default function MortgageComponent(props: Props) {
                     <TableHead>
                         <TableRow>
                             <TableCell>Year</TableCell>
-                            <TableCell>Budget</TableCell>
-                            <TableCell>Expenses</TableCell>
+                            <TableCell>Monthly Budget</TableCell>
+                            <TableCell>Monthly Expenses</TableCell>
                             <TableCell align="right">Monthly Investment</TableCell>
                             <TableCell align="right">Investment balance</TableCell>
                         </TableRow>
@@ -320,13 +327,39 @@ export default function MortgageComponent(props: Props) {
                                         <CurrencyValue value={adjustedBudget} />
                                     </TableCell>
                                     <TableCell>
-                                        <CurrencyValue value={calculateMonthlyExpenses(key)} />
+                                        <CurrencyValue
+                                            value={calculateMonthlyExpenses(key)}
+                                            sx={{ verticalAlign: 'middle' }}
+                                        />
+                                        <HelpIcon
+                                            title={(
+                                                <Box>
+                                                    <Typography>
+                                                        Mortgage:&nbsp;
+                                                        <CurrencyValue value={monthlyPayment} />
+                                                    </Typography>
+                                                    <Typography>
+                                                        Strata:&nbsp;
+                                                        <CurrencyValue value={getMonthlyStrataCoast(key)} />
+                                                    </Typography>
+                                                    <Typography>
+                                                        Taxes:&nbsp;
+                                                        <CurrencyValue value={getMonthlyTaxes(key)} />
+                                                    </Typography>
+                                                    <Typography>
+                                                        Maintenance:&nbsp;
+                                                        <CurrencyValue value={getMonthlyMaintenance(key)} />
+                                                    </Typography>
+                                                </Box>
+                                            )}
+                                            sx={{ verticalAlign: 'middle', ml: 1 }}
+                                        />
                                     </TableCell>
                                     <TableCell align="right">
                                         <CurrencyValue value={calculateMonthlyInvestment(key)} />
                                     </TableCell>
                                     <TableCell align="right">
-                                        <CurrencyValue value={calculateInvestmentBalance(key + 1)} />
+                                        <CurrencyValue value={calculateInvestmentBalance(key)} />
                                     </TableCell>
                                 </TableRow>
                             );
