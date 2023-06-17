@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
     Accordion,
     AccordionSummary,
@@ -43,8 +43,8 @@ export default function RentFeature(props: Props) {
         years,
         sx,
     } = props;
-    const [rentPrice, setRentPrice] = useState(2685);
-    const [rentAnnualIncrease, setRentAnnualIncrease] = useState(2);
+    const [rentPrice, setRentPrice] = useState(0);
+    const [rentAnnualIncrease, setRentAnnualIncrease] = useState(0);
     const [expanded, setExpanded] = useState(false);
     const fieldFocusState = useRef<boolean>(false);
 
@@ -78,6 +78,30 @@ export default function RentFeature(props: Props) {
         }
     }, [expanded]);
 
+    const setRentPriceHandler = useCallback((value: number) => {
+        setRentPrice(value);
+        window?.localStorage.setItem('rent', value.toString());
+    }, []);
+
+    const setRentAnnualIncreaseHandler = useCallback((value: number) => {
+        setRentAnnualIncrease(value);
+        window?.localStorage.setItem('rentAnnualIncrease', value.toString());
+    }, []);
+
+    useEffect(() => {
+        const localStorage = window?.localStorage;
+        if (localStorage) {
+            const rentPrice = localStorage.getItem('rent');
+            if (rentPrice) {
+                setRentPrice(Number(rentPrice));
+            }
+            const rentAnnualIncrease = localStorage.getItem('rentAnnualIncrease');
+            if (rentAnnualIncrease) {
+                setRentAnnualIncrease(Number(rentAnnualIncrease));
+            }
+        }
+    }, []);
+
     return (
         <Accordion expanded={expanded} sx={sx}>
             <AccordionSummary
@@ -85,7 +109,7 @@ export default function RentFeature(props: Props) {
                 onClick={accordionClickHandler}
             >
                 <Grid container spacing={2}>
-                    <Grid item xs={12} sm={3}>
+                    <Grid item xs={12} sm={4}>
                         <Typography variant="h6" sx={{ mr: 2 }}>Rent</Typography>
                         <Typography>
                             Overall expenses:&nbsp;
@@ -95,7 +119,6 @@ export default function RentFeature(props: Props) {
                                     percent: rentAnnualIncrease,
                                     years,
                                 })}
-                                sx={{ fontWeight: 'bold' }}
                             />
                         </Typography>
                         <Typography>
@@ -106,7 +129,7 @@ export default function RentFeature(props: Props) {
                             />
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sm={8}>
+                    <Grid item xs={12} sm={7}>
                         <CurrencyField
                             label="Price"
                             value={rentPrice}
@@ -117,7 +140,7 @@ export default function RentFeature(props: Props) {
                             onBlur={() => {
                                 fieldFocusState.current = false;
                             }}
-                            onChange={setRentPrice}
+                            onChange={setRentPriceHandler}
                         />
                         <PercentField
                             label="Annual increase"
@@ -129,7 +152,7 @@ export default function RentFeature(props: Props) {
                             onBlur={() => {
                                 fieldFocusState.current = false;
                             }}
-                            onChange={setRentAnnualIncrease}
+                            onChange={setRentAnnualIncreaseHandler}
                         />
                     </Grid>
                 </Grid>
@@ -144,10 +167,7 @@ export default function RentFeature(props: Props) {
                             <TableCell align="right">Monthly Investment</TableCell>
                             <TableCell align="right">
                                 Investment balance
-                                <HelpIcon
-                                    title="Savings as a start balance"
-                                    sx={{ verticalAlign: 'middle', ml: 1 }}
-                                />
+                                <HelpIcon title="Savings as a starting balance" />
                             </TableCell>
                         </TableRow>
                     </TableHead>

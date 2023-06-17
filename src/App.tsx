@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useCallback, useEffect } from 'react';
 import {
     Container,
     Box,
@@ -19,11 +19,62 @@ import { RentFeature, MortgageFeature } from 'src/features';
 export default function App() {
     const theme = useTheme();
     const themeContext = useContext(ThemeContext);
-    const [savings, setSavings] = useState(250000);
-    const [budget, setBudget] = useState(10000);
+    const [savings, setSavings] = useState(0);
+    const [budget, setBudget] = useState(0);
     const [budgetIncreaseRate, setBudgetIncreaseRate] = useState(3);
-    const [investmentReturnRate, setInvestmentReturnRate] = useState(8);
+    const [investmentReturnRate, setInvestmentReturnRate] = useState(0);
     const [years, setYears] = useState(15);
+
+    const setSavingsHandler = useCallback((value: number) => {
+        setSavings(value);
+        window?.localStorage.setItem('savings', value.toString());
+    }, []);
+
+    const setBudgetHandler = useCallback((value: number) => {
+        setBudget(value);
+        window?.localStorage.setItem('budget', value.toString());
+    }, []);
+
+    const setBudgetIncreaseRateHandler = useCallback((value: number) => {
+        setBudgetIncreaseRate(value);
+        window?.localStorage.setItem('budgetIncreaseRate', value.toString());
+    }, []);
+
+    const setInvestmentReturnRateHandler = useCallback((value: number) => {
+        setInvestmentReturnRate(value);
+        window?.localStorage.setItem('investmentReturnRate', value.toString());
+    }, []);
+
+    const setYearsHandler = useCallback((value: number) => {
+        setYears(value);
+        window?.localStorage.setItem('years', value.toString());
+    }, []);
+
+    useEffect(() => {
+        const localStorage = window?.localStorage;
+        if (localStorage) {
+            const savings = localStorage.getItem('savings');
+            if (savings) {
+                setSavings(Number(savings));
+            }
+            const budget = localStorage.getItem('budget');
+            if (budget) {
+                setBudget(Number(budget));
+            }
+            const budgetIncreaseRate = localStorage.getItem('budgetIncreaseRate');
+            if (budgetIncreaseRate) {
+                setBudgetIncreaseRate(Number(budgetIncreaseRate));
+            }
+            const investmentReturnRate = localStorage.getItem('investmentReturnRate');
+            if (investmentReturnRate) {
+                setInvestmentReturnRate(Number(investmentReturnRate));
+            }
+            const years = localStorage.getItem('years');
+            if (years) {
+                setYears(Number(years));
+            }
+        }
+    }, []);
 
     return (
         <Container sx={{ p: 2 }}>
@@ -69,25 +120,25 @@ export default function App() {
                     label="Savings"
                     value={savings}
                     sx={{ mb: 2, mr: 2 }}
-                    onChange={setSavings}
+                    onChange={setSavingsHandler}
                 />
                 <CurrencyField
                     label="Monthly budget"
                     value={budget}
                     sx={{ mb: 2, mr: 2 }}
-                    onChange={setBudget}
+                    onChange={setBudgetHandler}
                 />
                 <PercentField
                     label="Budget increase rate"
                     value={budgetIncreaseRate}
                     sx={{ mb: 2, mr: 2, minWidth: '150px' }}
-                    onChange={setBudgetIncreaseRate}
+                    onChange={setBudgetIncreaseRateHandler}
                 />
                 <PercentField
                     label="Investment return rate"
                     value={investmentReturnRate}
                     sx={{ mb: 2, mr: 2, minWidth: '150px' }}
-                    onChange={setInvestmentReturnRate}
+                    onChange={setInvestmentReturnRateHandler}
                 />
                 <TextField
                     label="Years"
@@ -98,7 +149,7 @@ export default function App() {
                     InputProps={{ inputProps: { min: 1, max: 30 } }}
                     sx={{ mb: 2, minWidth: '150px' }}
                     onChange={(event) => {
-                        setYears(Number(event.target.value));
+                        setYearsHandler(Number(event.target.value));
                     }}
                 />
             </Box>

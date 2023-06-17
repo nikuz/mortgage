@@ -14,7 +14,7 @@ export default function CurrencyValue(props: Props) {
     } = props;
 
     return (
-        <Typography component="span" sx={sx}>
+        <Typography component="span" sx={sx} fontSize="inherit">
             {new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',

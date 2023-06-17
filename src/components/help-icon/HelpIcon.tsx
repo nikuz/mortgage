@@ -1,6 +1,8 @@
 import React from 'react';
 import {
+    ClickAwayListener,
     Tooltip,
+    IconButton,
 } from '@mui/material';
 import HelpIcon from '@mui/icons-material/Help'
 import { SxProps } from '@mui/system';
@@ -15,10 +17,42 @@ export default function HelpIconComponent(props: Props) {
         title,
         sx,
     } = props;
+    const [open, setOpen] = React.useState(false);
+
+    const closeHandler = () => {
+        setOpen(false);
+    };
+
+    const openHandler = () => {
+        setOpen(true);
+    };
 
     return (
-        <Tooltip title={title} sx={sx}>
-            <HelpIcon fontSize="small" />
-        </Tooltip>
+        <ClickAwayListener onClickAway={closeHandler}>
+            <Tooltip
+                title={title}
+                open={open}
+                arrow
+                disableFocusListener
+                disableHoverListener
+                disableTouchListener
+                sx={{
+                    verticalAlign: 'middle',
+                    ...sx,
+                }}
+                PopperProps={{
+                    disablePortal: true,
+                }}
+                onClose={closeHandler}
+            >
+                <IconButton
+                    onClick={openHandler}
+                    onMouseOver={openHandler}
+                    onMouseLeave={closeHandler}
+                >
+                    <HelpIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+        </ClickAwayListener>
     );
 }

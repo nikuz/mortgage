@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import {
     Box,
     Accordion,
@@ -44,25 +44,29 @@ export default function MortgageFeature(props: Props) {
         years,
         sx,
     } = props;
-    const [housePrice, setHousePrice] = useState(950000);
+    const [housePrice, setHousePrice] = useState(0);
+    const [downPayment, setDownPayment] = useState(0);
     const [interestRate, setInterestRate] = useState(5);
-    const [strata, setStrata] = useState(500);
+    const [strata, setStrata] = useState(0);
     const [strataAnnualIncrease, setStrataAnnualIncrease] = useState(3);
-    const [taxes, setTaxes] = useState(1500);
+    const [taxes, setTaxes] = useState(0);
     const [taxesAnnualIncrease, setTaxesAnnualIncrease] = useState(4.4);
-    const [housePriceAnnualIncrease, setHousePriceAnnualIncrease] = useState(2);
+    const [housePriceAnnualIncrease, setHousePriceAnnualIncrease] = useState(5);
     const [houseMaintenance, setHouseMaintenance] = useState(1);
     const [expanded, setExpanded] = useState(false);
     const fieldFocusState = useRef<boolean>(false);
     const monthlyPayment = useMemo(() => calculateMortgagePayment({
         housePrice,
-        downPayment: savings,
+        downPayment,
         interestRate,
         years,
-    }), [housePrice, savings, interestRate, years]);
-    const interest = useMemo(() => (
-        monthlyPayment * 12 * years - (housePrice - savings)
-    ), [housePrice, savings, years, monthlyPayment]);
+    }), [housePrice, downPayment, interestRate, years]);
+    const interest = useMemo(() => {
+        if (monthlyPayment === 0 || downPayment >= housePrice) {
+            return 0;
+        }
+        return monthlyPayment * 12 * years - (housePrice - downPayment);
+    }, [housePrice, downPayment, years, monthlyPayment]);
     const totalStrata = useMemo(() => calculateCompoundPercentsSum({
         value: strata * 12,
         percent: strataAnnualIncrease,
@@ -140,7 +144,7 @@ export default function MortgageFeature(props: Props) {
     }, [budget, budgetIncreaseRate, calculateMonthlyExpenses]);
 
     const calculateInvestmentBalance = useCallback((years: number) => {
-        let result = 0;
+        let result = Math.max(savings - downPayment, 0); // starting balance
         for (let i = 0; i <= years; i++) {
             result = calculateCompoundPercentsWithContributions({
                 value: result,
@@ -150,13 +154,100 @@ export default function MortgageFeature(props: Props) {
             });
         }
         return result;
-    }, [investmentReturnRate, calculateMonthlyInvestment]);
+    }, [savings, downPayment, investmentReturnRate, calculateMonthlyInvestment]);
 
     const accordionClickHandler = useCallback(() => {
         if (!fieldFocusState.current) {
             setExpanded(!expanded);
         }
     }, [expanded]);
+
+    const setHousePriceHandler = useCallback((value: number) => {
+        setHousePrice(value);
+        window?.localStorage.setItem('housePrice', value.toString());
+    }, []);
+
+    const setDownPaymentHandler = useCallback((value: number) => {
+        setDownPayment(value);
+        window?.localStorage.setItem('downPayment', value.toString());
+    }, []);
+
+    const setInterestRateHandler = useCallback((value: number) => {
+        setInterestRate(value);
+        window?.localStorage.setItem('interestRate', value.toString());
+    }, []);
+
+    const setStrataHandler = useCallback((value: number) => {
+        setStrata(value);
+        window?.localStorage.setItem('strata', value.toString());
+    }, []);
+
+    const setStrataAnnualIncreaseHandler = useCallback((value: number) => {
+        setStrataAnnualIncrease(value);
+        window?.localStorage.setItem('strataAnnualIncrease', value.toString());
+    }, []);
+
+    const setTaxesHandler = useCallback((value: number) => {
+        setTaxes(value);
+        window?.localStorage.setItem('taxes', value.toString());
+    }, []);
+
+    const setTaxesAnnualIncreaseHandler = useCallback((value: number) => {
+        setTaxesAnnualIncrease(value);
+        window?.localStorage.setItem('taxesAnnualIncrease', value.toString());
+    }, []);
+
+    const setHouseMaintenanceHandler = useCallback((value: number) => {
+        setHouseMaintenance(value);
+        window?.localStorage.setItem('houseMaintenance', value.toString());
+    }, []);
+
+    const setHousePriceAnnualIncreaseHandler = useCallback((value: number) => {
+        setHousePriceAnnualIncrease(value);
+        window?.localStorage.setItem('housePriceAnnualIncrease', value.toString());
+    }, []);
+
+    useEffect(() => {
+        const localStorage = window?.localStorage;
+        if (localStorage) {
+            const housePrice = localStorage.getItem('housePrice');
+            if (housePrice) {
+                setHousePrice(Number(housePrice));
+            }
+            const downPayment = localStorage.getItem('downPayment');
+            if (downPayment) {
+                setDownPayment(Number(downPayment));
+            }
+            const interestRate = localStorage.getItem('interestRate');
+            if (interestRate) {
+                setInterestRate(Number(interestRate));
+            }
+            const strata = localStorage.getItem('strata');
+            if (strata) {
+                setStrata(Number(strata));
+            }
+            const strataAnnualIncrease = localStorage.getItem('strataAnnualIncrease');
+            if (strataAnnualIncrease) {
+                setStrataAnnualIncrease(Number(strataAnnualIncrease));
+            }
+            const taxes = localStorage.getItem('taxes');
+            if (taxes) {
+                setTaxes(Number(taxes));
+            }
+            const taxesAnnualIncrease = localStorage.getItem('taxesAnnualIncrease');
+            if (taxesAnnualIncrease) {
+                setTaxesAnnualIncrease(Number(taxesAnnualIncrease));
+            }
+            const housePriceAnnualIncrease = localStorage.getItem('housePriceAnnualIncrease');
+            if (housePriceAnnualIncrease) {
+                setHousePriceAnnualIncrease(Number(housePriceAnnualIncrease));
+            }
+            const houseMaintenance = localStorage.getItem('houseMaintenance');
+            if (houseMaintenance) {
+                setHouseMaintenance(Number(houseMaintenance));
+            }
+        }
+    }, []);
 
     return (
         <Accordion expanded={expanded} sx={sx}>
@@ -165,20 +256,18 @@ export default function MortgageFeature(props: Props) {
                 onClick={accordionClickHandler}
             >
                 <Grid container spacing={2}>
-                    <Grid item xs={12} sm={3}>
+                    <Grid item xs={12} sm={4}>
                         <Typography variant="h6" sx={{ mr: 2 }}>Mortgage</Typography>
                         <Typography>
                             Monthly payment:&nbsp;
                             <CurrencyValue
                                 value={monthlyPayment}
-                                sx={{ fontWeight: 'bold' }}
                             />
                         </Typography>
                         <Typography>
                             Overall expenses:&nbsp;
                             <CurrencyValue
                                 value={-overallExpenses}
-                                sx={{ fontWeight: 'bold' }}
                             />
                         </Typography>
                         <Typography>
@@ -187,9 +276,24 @@ export default function MortgageFeature(props: Props) {
                                 value={calculateInvestmentBalance(years) + finalHousePrice}
                                 sx={{ fontWeight: 'bold' }}
                             />
+                            <HelpIcon
+                                title={
+                                    <Box>
+                                        <Box>
+                                            Investment:&nbsp;
+                                            <CurrencyValue value={calculateInvestmentBalance(years)} />
+                                        </Box>
+                                        <Box>
+                                            House price:&nbsp;
+                                            <CurrencyValue value={finalHousePrice} />
+                                        </Box>
+                                    </Box>
+                                }
+                                sx={{ verticalAlign: 'sub' }}
+                            />
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} sm={8}>
+                    <Grid item xs={12} sm={7}>
                         <CurrencyField
                             label="House Price"
                             value={housePrice}
@@ -200,13 +304,19 @@ export default function MortgageFeature(props: Props) {
                             onBlur={() => {
                                 fieldFocusState.current = false;
                             }}
-                            onChange={setHousePrice}
+                            onChange={setHousePriceHandler}
                         />
                         <CurrencyField
                             label="Down payment"
-                            value={savings}
-                            disabled={true}
+                            value={downPayment}
                             sx={{ m: 1, mr: 2 }}
+                            onFocus={() => {
+                                fieldFocusState.current = true;
+                            }}
+                            onBlur={() => {
+                                fieldFocusState.current = false;
+                            }}
+                            onChange={setDownPaymentHandler}
                         />
                     </Grid>
                 </Grid>
@@ -226,7 +336,7 @@ export default function MortgageFeature(props: Props) {
                                     label="Interest rate"
                                     value={interestRate}
                                     sx={{ m: 1, minWidth: '150px' }}
-                                    onChange={setInterestRate}
+                                    onChange={setInterestRateHandler}
                                 />
                             </TableCell>
                             <TableCell align="right">
@@ -239,13 +349,13 @@ export default function MortgageFeature(props: Props) {
                                     label="Strata"
                                     value={strata}
                                     sx={{ m: 1, mr: 2, width: '150px' }}
-                                    onChange={setStrata}
+                                    onChange={setStrataHandler}
                                 />
                                 <PercentField
                                     label="Annual increase"
                                     value={strataAnnualIncrease}
                                     sx={{ m: 1, width: '150px' }}
-                                    onChange={setStrataAnnualIncrease}
+                                    onChange={setStrataAnnualIncreaseHandler}
                                 />
                             </TableCell>
                             <TableCell align="right">
@@ -258,13 +368,13 @@ export default function MortgageFeature(props: Props) {
                                     label="Property Tax"
                                     value={taxes}
                                     sx={{ m: 1, mr: 2, width: '150px' }}
-                                    onChange={setTaxes}
+                                    onChange={setTaxesHandler}
                                 />
                                 <PercentField
                                     label="Annual increase"
                                     value={taxesAnnualIncrease}
                                     sx={{ m: 1, width: '150px' }}
-                                    onChange={setTaxesAnnualIncrease}
+                                    onChange={setTaxesAnnualIncreaseHandler}
                                 />
                             </TableCell>
                             <TableCell align="right">
@@ -274,10 +384,10 @@ export default function MortgageFeature(props: Props) {
                         <TableRow>
                             <TableCell sx={{ pl: 0 }}>
                                 <PercentField
-                                    label="Maintnance"
+                                    label="Maintenance"
                                     value={houseMaintenance}
                                     sx={{ m: 1, width: '150px' }}
-                                    onChange={setHouseMaintenance}
+                                    onChange={setHouseMaintenanceHandler}
                                 />
                             </TableCell>
                             <TableCell align="right">
@@ -290,7 +400,7 @@ export default function MortgageFeature(props: Props) {
                                     label="House price annual increase"
                                     value={housePriceAnnualIncrease}
                                     sx={{ m: 1, mr: 2, width: '150px' }}
-                                    onChange={setHousePriceAnnualIncrease}
+                                    onChange={setHousePriceAnnualIncreaseHandler}
                                 />
                             </TableCell>
                             <TableCell align="right">
@@ -299,6 +409,7 @@ export default function MortgageFeature(props: Props) {
                         </TableRow>
                     </TableBody>
                 </Table>
+
                 <Table size="small">
                     <TableHead>
                         <TableRow>
@@ -306,7 +417,19 @@ export default function MortgageFeature(props: Props) {
                             <TableCell>Monthly Budget</TableCell>
                             <TableCell>Monthly Expenses</TableCell>
                             <TableCell align="right">Monthly Investment</TableCell>
-                            <TableCell align="right">Investment balance</TableCell>
+                            <TableCell align="right">
+                                Investment balance
+                                <HelpIcon
+                                    title={
+                                        <Box>
+                                            Savings minus down payment as a starting balance:&nbsp;
+                                            <CurrencyValue
+                                                value={Math.max(savings - downPayment, 0)}
+                                            />
+                                        </Box>
+                                    }
+                                />
+                            </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -334,25 +457,24 @@ export default function MortgageFeature(props: Props) {
                                         <HelpIcon
                                             title={(
                                                 <Box>
-                                                    <Typography>
+                                                    <Typography fontSize="inherit">
                                                         Mortgage:&nbsp;
                                                         <CurrencyValue value={monthlyPayment} />
                                                     </Typography>
-                                                    <Typography>
+                                                    <Typography fontSize="inherit">
                                                         Strata:&nbsp;
                                                         <CurrencyValue value={getMonthlyStrataCoast(key)} />
                                                     </Typography>
-                                                    <Typography>
+                                                    <Typography fontSize="inherit">
                                                         Taxes:&nbsp;
                                                         <CurrencyValue value={getMonthlyTaxes(key)} />
                                                     </Typography>
-                                                    <Typography>
+                                                    <Typography fontSize="inherit">
                                                         Maintenance:&nbsp;
                                                         <CurrencyValue value={getMonthlyMaintenance(key)} />
                                                     </Typography>
                                                 </Box>
                                             )}
-                                            sx={{ verticalAlign: 'middle', ml: 1 }}
                                         />
                                     </TableCell>
                                     <TableCell align="right">
