@@ -1,8 +1,5 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
     Typography,
     Table,
     TableHead,
@@ -12,8 +9,10 @@ import {
     Grid,
 } from '@mui/material';
 import { SxProps } from '@mui/system';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
     CurrencyField,
     PercentField,
     CurrencyValue,
@@ -45,8 +44,6 @@ export default function RentFeature(props: Props) {
     } = props;
     const [rentPrice, setRentPrice] = useState(0);
     const [rentAnnualIncrease, setRentAnnualIncrease] = useState(0);
-    const [expanded, setExpanded] = useState(false);
-    const fieldFocusState = useRef<boolean>(false);
 
     const calculateInvestmentBalance = useCallback((years: number) => {
         let result = savings;
@@ -71,12 +68,6 @@ export default function RentFeature(props: Props) {
         }
         return result;
     }, [savings, budget, budgetIncreaseRate, rentPrice, rentAnnualIncrease, investmentReturnRate]);
-
-    const accordionClickHandler = useCallback(() => {
-        if (!fieldFocusState.current) {
-            setExpanded(!expanded);
-        }
-    }, [expanded]);
 
     const setRentPriceHandler = useCallback((value: number) => {
         setRentPrice(value);
@@ -103,11 +94,8 @@ export default function RentFeature(props: Props) {
     }, []);
 
     return (
-        <Accordion expanded={expanded} sx={sx}>
-            <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                onClick={accordionClickHandler}
-            >
+        <Accordion sx={sx}>
+            <AccordionSummary>
                 <Grid container spacing={2}>
                     <Grid item xs={12} sm={4}>
                         <Typography variant="h6" sx={{ mr: 2 }}>Rent</Typography>
@@ -134,30 +122,18 @@ export default function RentFeature(props: Props) {
                             label="Price"
                             value={rentPrice}
                             sx={{ m: 1, mr: 2 }}
-                            onFocus={() => {
-                                fieldFocusState.current = true;
-                            }}
-                            onBlur={() => {
-                                fieldFocusState.current = false;
-                            }}
                             onChange={setRentPriceHandler}
                         />
                         <PercentField
                             label="Annual increase"
                             value={rentAnnualIncrease}
                             sx={{ m: 1, minWidth: '150px' }}
-                            onFocus={() => {
-                                fieldFocusState.current = true;
-                            }}
-                            onBlur={() => {
-                                fieldFocusState.current = false;
-                            }}
                             onChange={setRentAnnualIncreaseHandler}
                         />
                     </Grid>
                 </Grid>
             </AccordionSummary>
-            <AccordionDetails sx={{ overflow: 'auto' }}>
+            <AccordionDetails>
                 <Table size="small">
                     <TableHead>
                         <TableRow>
@@ -165,7 +141,7 @@ export default function RentFeature(props: Props) {
                             <TableCell>Monthly Budget</TableCell>
                             <TableCell align="right">Monthly rent</TableCell>
                             <TableCell align="right">Monthly Investment</TableCell>
-                            <TableCell align="right">
+                            <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                                 Investment balance
                                 <HelpIcon title="Savings as a starting balance" />
                             </TableCell>

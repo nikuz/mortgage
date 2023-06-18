@@ -1,9 +1,6 @@
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
     Box,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
     Typography,
     Grid,
     Table,
@@ -13,11 +10,14 @@ import {
     TableCell,
 } from '@mui/material';
 import { SxProps } from '@mui/system';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
     CurrencyField,
     PercentField,
-    CurrencyValue, HelpIcon,
+    CurrencyValue,
+    HelpIcon,
 } from 'src/components';
 import {
     calculateCompoundPercents,
@@ -53,8 +53,6 @@ export default function MortgageFeature(props: Props) {
     const [taxesAnnualIncrease, setTaxesAnnualIncrease] = useState(4.4);
     const [housePriceAnnualIncrease, setHousePriceAnnualIncrease] = useState(5);
     const [houseMaintenance, setHouseMaintenance] = useState(1);
-    const [expanded, setExpanded] = useState(false);
-    const fieldFocusState = useRef<boolean>(false);
     const monthlyPayment = useMemo(() => calculateMortgagePayment({
         housePrice,
         downPayment,
@@ -156,12 +154,6 @@ export default function MortgageFeature(props: Props) {
         return result;
     }, [savings, downPayment, investmentReturnRate, calculateMonthlyInvestment]);
 
-    const accordionClickHandler = useCallback(() => {
-        if (!fieldFocusState.current) {
-            setExpanded(!expanded);
-        }
-    }, [expanded]);
-
     const setHousePriceHandler = useCallback((value: number) => {
         setHousePrice(value);
         window?.localStorage.setItem('housePrice', value.toString());
@@ -250,11 +242,8 @@ export default function MortgageFeature(props: Props) {
     }, []);
 
     return (
-        <Accordion expanded={expanded} sx={sx}>
-            <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                onClick={accordionClickHandler}
-            >
+        <Accordion sx={sx}>
+            <AccordionSummary>
                 <Grid container spacing={2}>
                     <Grid item xs={12} sm={4}>
                         <Typography variant="h6" sx={{ mr: 2 }}>Mortgage</Typography>
@@ -298,30 +287,18 @@ export default function MortgageFeature(props: Props) {
                             label="House Price"
                             value={housePrice}
                             sx={{ m: 1, mr: 2 }}
-                            onFocus={() => {
-                                fieldFocusState.current = true;
-                            }}
-                            onBlur={() => {
-                                fieldFocusState.current = false;
-                            }}
                             onChange={setHousePriceHandler}
                         />
                         <CurrencyField
                             label="Down payment"
                             value={downPayment}
                             sx={{ m: 1, mr: 2 }}
-                            onFocus={() => {
-                                fieldFocusState.current = true;
-                            }}
-                            onBlur={() => {
-                                fieldFocusState.current = false;
-                            }}
                             onChange={setDownPaymentHandler}
                         />
                     </Grid>
                 </Grid>
             </AccordionSummary>
-            <AccordionDetails sx={{ overflow: 'auto' }}>
+            <AccordionDetails>
                 <Table size="small">
                     <TableHead>
                         <TableRow>
@@ -417,7 +394,7 @@ export default function MortgageFeature(props: Props) {
                             <TableCell>Monthly Budget</TableCell>
                             <TableCell>Monthly Expenses</TableCell>
                             <TableCell align="right">Monthly Investment</TableCell>
-                            <TableCell align="right">
+                            <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                                 Investment balance
                                 <HelpIcon
                                     title={
@@ -449,7 +426,7 @@ export default function MortgageFeature(props: Props) {
                                     <TableCell>
                                         <CurrencyValue value={adjustedBudget} />
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                         <CurrencyValue
                                             value={calculateMonthlyExpenses(key)}
                                             sx={{ verticalAlign: 'middle' }}
