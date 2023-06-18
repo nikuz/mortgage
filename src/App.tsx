@@ -13,8 +13,14 @@ import {
     PercentField,
     CurrencyField,
     ThemeContext,
+    CompoundSelector,
 } from 'src/components';
-import { RentFeature, MortgageFeature } from 'src/features';
+import { Compound } from 'src/types';
+import {
+    RentFeature,
+    MortgageFeature,
+    InvestmentFeature,
+} from 'src/features';
 import packageSettings from '../package.json';
 
 export default function App() {
@@ -24,6 +30,7 @@ export default function App() {
     const [budget, setBudget] = useState(0);
     const [budgetIncreaseRate, setBudgetIncreaseRate] = useState(3);
     const [investmentReturnRate, setInvestmentReturnRate] = useState(0);
+    const [compound, setCompound] = useState<Compound>('annually');
     const [years, setYears] = useState(15);
 
     const setSavingsHandler = useCallback((value: number) => {
@@ -144,6 +151,11 @@ export default function App() {
                     sx={{ mb: 2, mr: 2, minWidth: '150px' }}
                     onChange={setInvestmentReturnRateHandler}
                 />
+                <CompoundSelector
+                    value={compound}
+                    sx={{ mb: 2, mr: 2 }}
+                    onChange={setCompound}
+                />
                 <TextField
                     label="Years"
                     value={years}
@@ -151,7 +163,7 @@ export default function App() {
                     variant="outlined"
                     size="small"
                     InputProps={{ inputProps: { min: 1, max: 30 } }}
-                    sx={{ mb: 2, minWidth: '150px' }}
+                    sx={{ mb: 2, width: '100px' }}
                     onChange={(event) => {
                         setYearsHandler(Number(event.target.value));
                     }}
@@ -163,6 +175,7 @@ export default function App() {
                 budget={budget}
                 budgetIncreaseRate={budgetIncreaseRate}
                 investmentReturnRate={investmentReturnRate}
+                compound={compound}
                 years={years}
                 sx={{ mb: 3 }}
             />
@@ -172,9 +185,12 @@ export default function App() {
                 budget={budget}
                 budgetIncreaseRate={budgetIncreaseRate}
                 investmentReturnRate={investmentReturnRate}
+                compound={compound}
                 years={years}
                 sx={{ mb: 3 }}
             />
+
+            <InvestmentFeature sx={{ mb: 3 }} />
         </Container>
     );
 }

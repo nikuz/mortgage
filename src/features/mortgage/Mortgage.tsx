@@ -25,12 +25,14 @@ import {
     calculateCompoundPercentsWithContributions,
     calculateMortgagePayment,
 } from 'src/tools';
+import { Compound } from 'src/types';
 
 interface Props {
     savings: number,
     budget: number,
     budgetIncreaseRate: number,
     investmentReturnRate: number,
+    compound: Compound,
     years: number,
     sx?: SxProps,
 }
@@ -41,6 +43,7 @@ export default function MortgageFeature(props: Props) {
         budget,
         budgetIncreaseRate,
         investmentReturnRate,
+        compound,
         years,
         sx,
     } = props;
@@ -78,22 +81,19 @@ export default function MortgageFeature(props: Props) {
     const totalHouseMaintenance = useMemo(() => {
         let result = 0;
         for (let i = 0; i < years; i++) {
-            const price = calculateCompoundPercents({
+            const futureHousePrice = calculateCompoundPercents({
                 value: housePrice,
                 percent: housePriceAnnualIncrease,
                 years: i,
             });
-            result += price * (houseMaintenance / 100);
+            result += futureHousePrice * (houseMaintenance / 100);
         }
         return result;
     }, [houseMaintenance, housePriceAnnualIncrease, housePrice, years]);
     const finalHousePrice = useMemo(() => calculateCompoundPercents({
         value: housePrice,
         percent: housePriceAnnualIncrease,
-        // reduce the amount of years by one, to not
-        // count the first year when you bought a house,
-        // the house price will increase next year
-        years: years - 1,
+        years: years,
     }), [housePrice, housePriceAnnualIncrease, years]);
     const overallExpenses = useMemo(() => (
         interest + totalStrata + totalTaxes + totalHouseMaintenance
@@ -149,10 +149,11 @@ export default function MortgageFeature(props: Props) {
                 percent: investmentReturnRate,
                 years: 1,
                 contribution: calculateMonthlyInvestment(i),
+                compound,
             });
         }
         return result;
-    }, [savings, downPayment, investmentReturnRate, calculateMonthlyInvestment]);
+    }, [savings, downPayment, investmentReturnRate, calculateMonthlyInvestment, compound]);
 
     const setHousePriceHandler = useCallback((value: number) => {
         setHousePrice(value);

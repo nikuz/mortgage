@@ -1,14 +1,23 @@
-// doesn't increase the result value if year is 0 (zero)
+import { Compound } from '../types';
+
+// Formula
+// A = P(1 + \frac{r}{n})^{nt}
+// A	=	final amount
+// P	=	initial principal balance
+// r	=	interest rate
+// n	=	number of times interest applied per time period
+// t	=	number of time periods elapsed
 export function calculateCompoundPercents(props: {
     value: number,
     percent: number,
     years: number,
 }) {
-    let result = props.value;
-
-    for (let i = 1; i <= props.years; i++) {
-        result += result * (props.percent / 100);
-    }
+    const {
+        value,
+        years,
+    } = props;
+    const percent = props.percent / 100;
+    const result = value * Math.pow(1 + percent, years);
 
     return Math.round(result);
 }
@@ -49,20 +58,29 @@ export function calculateMortgagePayment(props: {
     return loan * (top / bottom);
 }
 
+// calculations match an official website of the United States government
+// https://www.investor.gov/financial-tools-calculators/calculators/compound-interest-calculator
 export function calculateCompoundPercentsWithContributions(props: {
     value: number,
     percent: number,
     years: number,
     contribution: number,
+    compound?: Compound,
 }) {
     let result = props.value;
     const monthPerYear = 12;
     const monthlyPercent = props.percent / monthPerYear;
+    const yearlyContributions = props.contribution * monthPerYear;
 
     for (let i = 0; i < props.years; i++) {
-        for (let j = 0; j < monthPerYear; j++) {
-            const monthlyInterest = result * (monthlyPercent / 100);
-            result = result + monthlyInterest + props.contribution;
+        if (props.compound === 'monthly') {
+            for (let j = 0; j < monthPerYear; j++) {
+                const monthlyInterest = result * (monthlyPercent / 100);
+                result = result + monthlyInterest + props.contribution;
+            }
+        } else {
+            const yearlyInterest = result * (props.percent / 100);
+            result += yearlyContributions + yearlyInterest;
         }
     }
 

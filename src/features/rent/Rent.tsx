@@ -23,12 +23,14 @@ import {
     calculateCompoundPercentsSum,
     calculateCompoundPercentsWithContributions,
 } from 'src/tools';
+import { Compound } from 'src/types';
 
 interface Props {
     savings: number,
     budget: number,
     budgetIncreaseRate: number,
     investmentReturnRate: number,
+    compound: Compound,
     years: number,
     sx?: SxProps,
 }
@@ -39,6 +41,7 @@ export default function RentFeature(props: Props) {
         budget,
         budgetIncreaseRate,
         investmentReturnRate,
+        compound,
         years,
         sx,
     } = props;
@@ -64,10 +67,11 @@ export default function RentFeature(props: Props) {
                 percent: investmentReturnRate,
                 years: 1,
                 contribution: Math.max(investmentAmount, 0),
+                compound,
             });
         }
         return result;
-    }, [savings, budget, budgetIncreaseRate, rentPrice, rentAnnualIncrease, investmentReturnRate]);
+    }, [savings, budget, budgetIncreaseRate, rentPrice, rentAnnualIncrease, investmentReturnRate, compound]);
 
     const setRentPriceHandler = useCallback((value: number) => {
         setRentPrice(value);
@@ -143,7 +147,14 @@ export default function RentFeature(props: Props) {
                             <TableCell align="right">Monthly Investment</TableCell>
                             <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                                 Investment balance
-                                <HelpIcon title="Savings as a starting balance" />
+                                <HelpIcon
+                                    title={
+                                        <Typography fontSize="inherit">
+                                            Savings as a starting balance&nbsp;
+                                            <CurrencyValue value={savings} />
+                                        </Typography>
+                                    }
+                                />
                             </TableCell>
                         </TableRow>
                     </TableHead>

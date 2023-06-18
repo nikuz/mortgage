@@ -21,7 +21,7 @@ export default function AccordionComponent(props: Props) {
 
     const expandToggleHandler = useCallback((event: React.MouseEvent) => {
         const target = event.target as HTMLElement;
-        if (!target.closest('.MuiTextField-root')) {
+        if (target.nodeName !== 'A' && !target.closest('.MuiTextField-root')) {
             setExpanded(!expanded);
         }
     }, [expanded]);

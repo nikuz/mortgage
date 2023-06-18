@@ -4,17 +4,19 @@ import { Typography } from '@mui/material';
 
 interface Props {
     value: number,
+    component?: React.ElementType,
     sx?: SxProps,
 }
 
 export default function CurrencyValue(props: Props) {
     const {
         value,
+        component,
         sx,
     } = props;
 
     return (
-        <Typography component="span" sx={sx} fontSize="inherit">
+        <Typography component={component ?? 'span'} sx={sx} fontSize="inherit">
             {new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',
