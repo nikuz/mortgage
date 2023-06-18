@@ -17,9 +17,8 @@ export function calculateCompoundPercents(props: {
         years,
     } = props;
     const percent = props.percent / 100;
-    const result = value * Math.pow(1 + percent, years);
 
-    return Math.round(result);
+    return value * Math.pow(1 + percent, years);
 }
 
 // Sum function calculates compound percentage for each year and sums the results
@@ -84,5 +83,5 @@ export function calculateCompoundPercentsWithContributions(props: {
         }
     }
 
-    return Math.round(result);
+    return result;
 }
