@@ -15,6 +15,7 @@ import {
     ThemeContext,
 } from 'src/components';
 import { RentFeature, MortgageFeature } from 'src/features';
+import packageSettings from '../package.json';
 
 export default function App() {
     const theme = useTheme();
@@ -81,15 +82,18 @@ export default function App() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography
                     variant="h2"
-                    gutterBottom
                     sx={{
+                        mb: 5,
                         [theme.breakpoints.down('md')]: {
                             fontSize: '2rem',
-                            mb: 3,
+                            mb: 4,
                         },
                     }}
                 >
                     Buy vs Rent calculator
+                    <Typography variant="subtitle1" component="span" sx={{ ml: 1 }}>
+                        v{packageSettings.version}
+                    </Typography>
                 </Typography>
                 <Box
                     sx={{
