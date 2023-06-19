@@ -149,7 +149,7 @@ export default function RentFeature(props: Props) {
                                 Investment balance
                                 <HelpIcon
                                     title={
-                                        <Typography fontSize="inherit">
+                                        <Typography>
                                             Savings as a starting balance&nbsp;
                                             <CurrencyValue value={savings} />
                                         </Typography>

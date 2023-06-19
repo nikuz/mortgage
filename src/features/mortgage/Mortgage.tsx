@@ -98,7 +98,7 @@ export default function MortgageFeature(props: Props) {
             payments[i] = {
                 year: new Date().getFullYear() + i,
                 interestRate: currentRate,
-                monthlyPayment: currentMonthlyPayment,
+                monthlyPayment: Math.max(currentMonthlyPayment, 0),
                 principal: remainedPrincipal,
             };
         }
@@ -373,14 +373,14 @@ export default function MortgageFeature(props: Props) {
                             <HelpIcon
                                 title={
                                     <Box>
-                                        <Box>
+                                        <Typography>
                                             Investment:&nbsp;
                                             <CurrencyValue value={calculateInvestmentBalance(years)} />
-                                        </Box>
-                                        <Box>
+                                        </Typography>
+                                        <Typography>
                                             House price:&nbsp;
                                             <CurrencyValue value={finalHousePrice} />
-                                        </Box>
+                                        </Typography>
                                     </Box>
                                 }
                                 sx={{ verticalAlign: 'sub' }}
@@ -522,12 +522,12 @@ export default function MortgageFeature(props: Props) {
                                 Investment balance
                                 <HelpIcon
                                     title={
-                                        <Box>
+                                        <Typography>
                                             Savings minus down payment as a starting balance:&nbsp;
                                             <CurrencyValue
                                                 value={Math.max(savings - downPayment, 0)}
                                             />
-                                        </Box>
+                                        </Typography>
                                     }
                                 />
                             </TableCell>
@@ -558,19 +558,19 @@ export default function MortgageFeature(props: Props) {
                                         <HelpIcon
                                             title={(
                                                 <Box>
-                                                    <Typography fontSize="inherit">
+                                                    <Typography>
                                                         Mortgage:&nbsp;
                                                         <CurrencyValue value={monthlyPayments[key].monthlyPayment} />
                                                     </Typography>
-                                                    <Typography fontSize="inherit">
+                                                    <Typography>
                                                         Strata:&nbsp;
                                                         <CurrencyValue value={getMonthlyStrataCoast(key)} />
                                                     </Typography>
-                                                    <Typography fontSize="inherit">
+                                                    <Typography>
                                                         Taxes:&nbsp;
                                                         <CurrencyValue value={getMonthlyTaxes(key)} />
                                                     </Typography>
-                                                    <Typography fontSize="inherit">
+                                                    <Typography>
                                                         Maintenance:&nbsp;
                                                         <CurrencyValue value={getMonthlyMaintenance(key)} />
                                                     </Typography>
