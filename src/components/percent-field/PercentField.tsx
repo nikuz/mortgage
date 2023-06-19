@@ -5,6 +5,8 @@ import { SxProps } from '@mui/system';
 interface Props {
     label?: string,
     value: number,
+    min?: number,
+    max?: number,
     sx?: SxProps,
     onChange: (value: number) => void,
     onFocus?: () => void,
@@ -15,6 +17,8 @@ export default function PercentField(props: Props) {
     const {
         label,
         value,
+        min,
+        max,
         sx,
         onChange,
         onFocus,
@@ -29,7 +33,7 @@ export default function PercentField(props: Props) {
             variant="outlined"
             size="small"
             InputProps={{
-                inputProps: { min: 0, max: 100 },
+                inputProps: { min: min ?? 0, max: max ?? 100 },
                 endAdornment: <InputAdornment position="end">%</InputAdornment>
             }}
             sx={sx}

@@ -2,8 +2,11 @@ import React from 'react';
 import {
     ClickAwayListener,
     Tooltip,
+    TooltipProps,
+    tooltipClasses,
     IconButton,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import HelpIcon from '@mui/icons-material/Help'
 import { SxProps } from '@mui/system';
 
@@ -29,7 +32,7 @@ export default function HelpIconComponent(props: Props) {
 
     return (
         <ClickAwayListener onClickAway={closeHandler}>
-            <Tooltip
+            <CustomWidthTooltip
                 title={title}
                 open={open}
                 arrow
@@ -52,7 +55,17 @@ export default function HelpIconComponent(props: Props) {
                 >
                     <HelpIcon fontSize="small" />
                 </IconButton>
-            </Tooltip>
+            </CustomWidthTooltip>
         </ClickAwayListener>
     );
 }
+
+const ForwardRefTooltip = React.forwardRef(({ className, ...props }: TooltipProps, ref) => (
+    <Tooltip ref={ref} {...props} classes={{ popper: className }} />
+));
+
+const CustomWidthTooltip = styled(ForwardRefTooltip)({
+    [`& .${tooltipClasses.tooltip}`]: {
+        maxWidth: 500,
+    },
+});

@@ -8,6 +8,7 @@ import {
     TableBody,
     TableRow,
     TableCell,
+    TextField,
 } from '@mui/material';
 import { SxProps } from '@mui/system';
 import {
@@ -24,8 +25,9 @@ import {
     calculateCompoundPercentsSum,
     calculateCompoundPercentsWithContributions,
     calculateMortgagePayment,
+    calculateMortgageRemainedPrincipal,
 } from 'src/tools';
-import { Compound } from 'src/types';
+import { Compound, MortgagePayment } from 'src/types';
 
 interface Props {
     savings: number,
@@ -50,24 +52,77 @@ export default function MortgageFeature(props: Props) {
     const [housePrice, setHousePrice] = useState(0);
     const [downPayment, setDownPayment] = useState(0);
     const [interestRate, setInterestRate] = useState(5);
+    const [interestRateLength, setInterestRateLength] = useState(5);
+    const [interestRateIncrease, setInterestRateIncrease] = useState(1);
     const [strata, setStrata] = useState(0);
     const [strataAnnualIncrease, setStrataAnnualIncrease] = useState(3);
     const [taxes, setTaxes] = useState(0);
     const [taxesAnnualIncrease, setTaxesAnnualIncrease] = useState(4.4);
     const [housePriceAnnualIncrease, setHousePriceAnnualIncrease] = useState(5);
     const [houseMaintenance, setHouseMaintenance] = useState(1);
-    const monthlyPayment = useMemo(() => calculateMortgagePayment({
-        housePrice,
-        downPayment,
-        interestRate,
-        years,
-    }), [housePrice, downPayment, interestRate, years]);
+    const monthlyPayments = useMemo(() => {
+        const payments = new Array<MortgagePayment>(years);
+        let currentPeriod = 0;
+        let remainedPrincipal = housePrice - downPayment;
+        let currentRate = interestRate;
+        let currentMonthlyPayment = calculateMortgagePayment({
+            principal: remainedPrincipal,
+            interestRate: currentRate,
+            years,
+        });
+
+        for (let i = 0; i < years; i++) {
+            let period = Math.ceil((i + 1) / interestRateLength);
+            period = period > 0 ? period - 1 : period;
+
+            if (period > 0 && period !== currentPeriod) {
+                remainedPrincipal = calculateMortgageRemainedPrincipal({
+                    principal: remainedPrincipal,
+                    monthlyPayment: currentMonthlyPayment,
+                    interestRate: currentRate,
+                    years: interestRateLength,
+                });
+                currentRate += interestRateIncrease;
+                // avoid division by zero
+                if (currentRate === 0) {
+                    currentRate = 0.00001;
+                }
+                currentMonthlyPayment = calculateMortgagePayment({
+                    principal: remainedPrincipal,
+                    interestRate: currentRate,
+                    years: years - i,
+                });
+                currentPeriod = period;
+            }
+
+            payments[i] = {
+                year: new Date().getFullYear() + i,
+                interestRate: currentRate,
+                monthlyPayment: currentMonthlyPayment,
+                principal: remainedPrincipal,
+            };
+        }
+
+        return payments;
+    }, [housePrice, downPayment, interestRate, interestRateLength, interestRateIncrease, years]);
+    const uniqueMonthlyPayments = useMemo<MortgagePayment[]>(() => {
+        const payments = new Map();
+        for (const item of monthlyPayments) {
+            if (!payments.has(item.monthlyPayment)) {
+                payments.set(item.monthlyPayment, item);
+            }
+        }
+        return Array.from(payments.values());
+    }, [monthlyPayments]);
     const interest = useMemo(() => {
-        if (monthlyPayment === 0 || downPayment >= housePrice) {
+        if (downPayment >= housePrice) {
             return 0;
         }
-        return monthlyPayment * 12 * years - (housePrice - downPayment);
-    }, [housePrice, downPayment, years, monthlyPayment]);
+        const totalPayments = monthlyPayments.reduce((acc, item) => (
+            acc + item.monthlyPayment * 12
+        ), 0);
+        return totalPayments - (housePrice - downPayment);
+    }, [housePrice, downPayment, monthlyPayments]);
     const totalStrata = useMemo(() => calculateCompoundPercentsSum({
         value: strata * 12,
         percent: strataAnnualIncrease,
@@ -127,8 +182,8 @@ export default function MortgageFeature(props: Props) {
         const strataCoast = getMonthlyStrataCoast(year);
         const monthlyTaxes = getMonthlyTaxes(year);
         const maintenance = getMonthlyMaintenance(year);
-        return monthlyPayment + strataCoast + monthlyTaxes + maintenance;
-    }, [monthlyPayment, getMonthlyStrataCoast, getMonthlyTaxes, getMonthlyMaintenance]);
+        return monthlyPayments[year].monthlyPayment + strataCoast + monthlyTaxes + maintenance;
+    }, [monthlyPayments, getMonthlyStrataCoast, getMonthlyTaxes, getMonthlyMaintenance]);
 
     const calculateMonthlyInvestment = useCallback((year: number) => {
         const expenses = calculateMonthlyExpenses(year);
@@ -143,7 +198,7 @@ export default function MortgageFeature(props: Props) {
 
     const calculateInvestmentBalance = useCallback((years: number) => {
         let result = Math.max(savings - downPayment, 0); // starting balance
-        for (let i = 0; i <= years; i++) {
+        for (let i = 0; i < years; i++) {
             result = calculateCompoundPercentsWithContributions({
                 value: result,
                 percent: investmentReturnRate,
@@ -168,6 +223,16 @@ export default function MortgageFeature(props: Props) {
     const setInterestRateHandler = useCallback((value: number) => {
         setInterestRate(value);
         window?.localStorage.setItem('interestRate', value.toString());
+    }, []);
+
+    const setInterestRateLengthHandler = useCallback((value: number) => {
+        setInterestRateLength(value);
+        window?.localStorage.setItem('interestRateLength', value.toString());
+    }, []);
+
+    const setInterestRateIncreaseHandler = useCallback((value: number) => {
+        setInterestRateIncrease(value);
+        window?.localStorage.setItem('interestRateIncrease', value.toString());
     }, []);
 
     const setStrataHandler = useCallback((value: number) => {
@@ -215,6 +280,14 @@ export default function MortgageFeature(props: Props) {
             if (interestRate) {
                 setInterestRate(Number(interestRate));
             }
+            const interestRateLength = localStorage.getItem('interestRateLength');
+            if (interestRateLength) {
+                setInterestRateLength(Number(interestRateLength));
+            }
+            const interestRateIncrease = localStorage.getItem('interestRateIncrease');
+            if (interestRateIncrease) {
+                setInterestRateIncrease(Number(interestRateIncrease));
+            }
             const strata = localStorage.getItem('strata');
             if (strata) {
                 setStrata(Number(strata));
@@ -248,19 +321,50 @@ export default function MortgageFeature(props: Props) {
                 <Grid container spacing={2}>
                     <Grid item xs={12} sm={4}>
                         <Typography variant="h6" sx={{ mr: 2 }}>Mortgage</Typography>
-                        <Typography>
+                        <Box>
                             Monthly payment:&nbsp;
                             <CurrencyValue
-                                value={monthlyPayment}
+                                value={monthlyPayments[0].monthlyPayment}
                             />
-                        </Typography>
+                            <HelpIcon
+                                title={
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Year</TableCell>
+                                                <TableCell>Interest rate</TableCell>
+                                                <TableCell>Remained Principal</TableCell>
+                                                <TableCell>Monthly payment</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {uniqueMonthlyPayments.map((item, key) => (
+                                                <TableRow key={key}>
+                                                    <TableCell>
+                                                        {item.year}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {item.interestRate}%
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <CurrencyValue value={item.principal} />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <CurrencyValue value={item.monthlyPayment} />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                }
+                                sx={{ verticalAlign: 'sub' }}
+                            />
+                        </Box>
                         <Typography>
                             Overall expenses:&nbsp;
-                            <CurrencyValue
-                                value={-overallExpenses}
-                            />
+                            <CurrencyValue value={-overallExpenses} />
                         </Typography>
-                        <Typography>
+                        <Box>
                             Balance in {years} years:&nbsp;
                             <CurrencyValue
                                 value={calculateInvestmentBalance(years) + finalHousePrice}
@@ -281,7 +385,7 @@ export default function MortgageFeature(props: Props) {
                                 }
                                 sx={{ verticalAlign: 'sub' }}
                             />
-                        </Typography>
+                        </Box>
                     </Grid>
                     <Grid item xs={12} sm={7}>
                         <CurrencyField
@@ -315,6 +419,25 @@ export default function MortgageFeature(props: Props) {
                                     value={interestRate}
                                     sx={{ m: 1, minWidth: '150px' }}
                                     onChange={setInterestRateHandler}
+                                />
+                                <TextField
+                                    label="Period length (years)"
+                                    value={interestRateLength}
+                                    type="number"
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{ inputProps: { min: 1, max: 30 } }}
+                                    sx={{ m: 1, width: '150px' }}
+                                    onChange={(event) => {
+                                        setInterestRateLengthHandler(Number(event.target.value));
+                                    }}
+                                />
+                                <PercentField
+                                    label="Increase per period"
+                                    value={interestRateIncrease}
+                                    min={-10}
+                                    sx={{ m: 1, minWidth: '150px' }}
+                                    onChange={setInterestRateIncreaseHandler}
                                 />
                             </TableCell>
                             <TableCell align="right">
@@ -437,7 +560,7 @@ export default function MortgageFeature(props: Props) {
                                                 <Box>
                                                     <Typography fontSize="inherit">
                                                         Mortgage:&nbsp;
-                                                        <CurrencyValue value={monthlyPayment} />
+                                                        <CurrencyValue value={monthlyPayments[key].monthlyPayment} />
                                                     </Typography>
                                                     <Typography fontSize="inherit">
                                                         Strata:&nbsp;
@@ -459,7 +582,7 @@ export default function MortgageFeature(props: Props) {
                                         <CurrencyValue value={calculateMonthlyInvestment(key)} />
                                     </TableCell>
                                     <TableCell align="right">
-                                        <CurrencyValue value={calculateInvestmentBalance(key)} />
+                                        <CurrencyValue value={calculateInvestmentBalance(key + 1)} />
                                     </TableCell>
                                 </TableRow>
                             );

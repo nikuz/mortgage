@@ -43,18 +43,39 @@ export function calculateCompoundPercentsSum(props: {
 
 // formula: https://www.bankrate.com/mortgages/mortgage-calculator/#how-mortgage-calculator-help
 export function calculateMortgagePayment(props: {
-    housePrice: number,
-    downPayment: number,
+    principal: number,
     interestRate: number,
     years: number,
 }) {
-    const loan = props.housePrice - props.downPayment;
     const monthlyInterest = props.interestRate / 100 / 12;
     const paymentsAmount = props.years * 12; // years multiple months per year
     const top = monthlyInterest * Math.pow(1 + monthlyInterest, paymentsAmount);
     const bottom = Math.pow(1 + monthlyInterest, paymentsAmount) - 1;
 
-    return loan * (top / bottom);
+    return props.principal * (top / bottom);
+}
+
+// formula: https://www.investopedia.com/terms/a/amortization.asp
+// Principal Payment = TMP − (OLB * (Interest Rate / 12 Months))
+// TMP = Total monthly payment
+// OLB = Outstanding loan balance
+export function calculateMortgageRemainedPrincipal(props: {
+    principal: number,
+    monthlyPayment: number,
+    interestRate: number,
+    years: number,
+}) {
+    let remainedPrincipal = props.principal;
+    let principal: number;
+
+    for (let i = 0, l = props.years * 12; i < l; i++) {
+        const interest = remainedPrincipal * (props.interestRate / 100 / 12);
+        principal = props.monthlyPayment - interest;
+        remainedPrincipal -= principal;
+        // console.log('remainedPrincipal:', remainedPrincipal);
+    }
+
+    return remainedPrincipal;
 }
 
 // calculations match an official website of the United States government
