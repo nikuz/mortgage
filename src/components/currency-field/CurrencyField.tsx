@@ -31,12 +31,12 @@ export default function CurrencyField(props: Props) {
             variant="outlined"
             size="small"
             disabled={disabled}
-            sx={sx}
-            onFocus={onFocus}
-            onBlur={onBlur}
             InputProps={{
                 inputComponent: NumericFormatCustom as any,
             }}
+            sx={sx}
+            onFocus={onFocus}
+            onBlur={onBlur}
             onChange={(event) => {
                 onChange?.(Number(event.target.value));
             }}
@@ -57,6 +57,9 @@ const NumericFormatCustom = React.forwardRef<NumericFormatProps, CustomProps>(
             <NumericFormat
                 {...other}
                 getInputRef={ref}
+                thousandSeparator
+                valueIsNumericString
+                suffix="$"
                 onValueChange={(values) => {
                     onChange({
                         target: {
@@ -65,9 +68,6 @@ const NumericFormatCustom = React.forwardRef<NumericFormatProps, CustomProps>(
                         },
                     });
                 }}
-                thousandSeparator
-                valueIsNumericString
-                prefix="$"
             />
         );
     },
