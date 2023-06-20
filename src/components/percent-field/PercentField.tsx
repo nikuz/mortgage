@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { TextField, InputAdornment } from '@mui/material';
 import { SxProps } from '@mui/system';
 import { NumericFormat, NumericFormatProps } from 'react-number-format';
@@ -27,12 +27,32 @@ export default function PercentField(props: Props) {
         onFocus,
         onBlur,
     } = props;
+    const [onMobileScreen, setOnMobileScreen] = useState(false);
+
+    const isOnMobile = useCallback(() => (
+        Math.min(window.innerWidth, window.innerHeight) < 768
+    ), []);
+
+    const handleWindowSizeChange = useCallback(() => {
+        const isOnMobileNow = isOnMobile();
+        if (isOnMobileNow !== onMobileScreen) {
+            setOnMobileScreen(isOnMobileNow);
+        }
+    }, [onMobileScreen, isOnMobile]);
+
+    useEffect(() => {
+        handleWindowSizeChange();
+        window.addEventListener('resize', handleWindowSizeChange);
+        return () => {
+            window.removeEventListener('resize', handleWindowSizeChange);
+        }
+    }, [handleWindowSizeChange]);
 
     return (
         <TextField
             label={label}
             value={value}
-            type="number"
+            type={onMobileScreen ? 'string' : 'number'}
             variant="outlined"
             size="small"
             disabled={disabled}
