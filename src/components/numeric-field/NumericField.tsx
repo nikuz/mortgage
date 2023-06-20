@@ -10,18 +10,20 @@ interface Props {
     max?: number,
     disabled?: boolean,
     sx?: SxProps,
+    adornment?: React.ReactNode,
     onChange: (value: number) => void,
     onFocus?: () => void,
     onBlur?: () => void,
 }
 
-export default function PercentField(props: Props) {
+export default function NumericField(props: Props) {
     const {
         label,
         value,
         min,
         max,
         disabled,
+        adornment,
         sx,
         onChange,
         onFocus,
@@ -58,7 +60,11 @@ export default function PercentField(props: Props) {
             disabled={disabled}
             InputProps={{
                 inputProps: { min: min ?? 0, max: max ?? 100 },
-                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                endAdornment: (
+                    <InputAdornment position="end">
+                        {adornment}
+                    </InputAdornment>
+                ),
                 inputComponent: NumericFormatCustom as any,
             }}
             sx={sx}
@@ -72,6 +78,8 @@ export default function PercentField(props: Props) {
 }
 
 interface CustomProps {
+    min?: number,
+    max?: number,
     onChange: (event: { target: { name: string; value: string } }) => void;
     name: string;
 }
@@ -85,7 +93,13 @@ const NumericFormatCustom = React.forwardRef<NumericFormatProps, CustomProps>(
                 {...other}
                 getInputRef={ref}
                 valueIsNumericString
-                allowNegative
+                isAllowed={(values) => {
+                    return !(values.value !== ''
+                        && (
+                            (props.min !== undefined && Number(values.value) < props.min)
+                            || (props.max !== undefined && Number(values.value) > props.max)
+                        ));
+                }}
                 onValueChange={(values) => {
                     onChange({
                         target: {

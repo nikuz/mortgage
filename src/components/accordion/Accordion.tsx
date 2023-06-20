@@ -29,6 +29,7 @@ export default function AccordionComponent(props: Props) {
     return (
         <AccordionContext.Provider
             value={{
+                expanded,
                 onSummaryClick: expandToggleHandler,
             }}
         >
@@ -48,6 +49,7 @@ export default function AccordionComponent(props: Props) {
 }
 
 interface AccordionContextType {
+    expanded?: boolean,
     onSummaryClick?: (event: React.MouseEvent) => void,
 }
 
@@ -68,9 +70,11 @@ export function AccordionSummary(props: { children: React.ReactNode }) {
 }
 
 export function AccordionDetails(props: { children: React.ReactNode }) {
+    const context = useContext(AccordionContext);
+
     return (
         <MaterialAccordionDetails sx={{ overflow: 'auto' }}>
-            {props.children}
+            {context.expanded && props.children}
         </MaterialAccordionDetails>
     );
 }

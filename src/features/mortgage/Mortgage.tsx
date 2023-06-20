@@ -8,7 +8,6 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    TextField,
 } from '@mui/material';
 import { SxProps } from '@mui/system';
 import {
@@ -16,7 +15,7 @@ import {
     AccordionSummary,
     AccordionDetails,
     CurrencyField,
-    PercentField,
+    NumericField,
     CurrencyValue,
     HelpIcon,
 } from 'src/components';
@@ -61,7 +60,7 @@ export default function MortgageFeature(props: Props) {
     const [housePriceAnnualIncrease, setHousePriceAnnualIncrease] = useState(5);
     const [houseMaintenance, setHouseMaintenance] = useState(1);
     const monthlyPayments = useMemo(() => {
-        const payments = new Array<MortgagePayment>(years);
+        const payments: MortgagePayment[] = [];
         let currentPeriod = 0;
         let remainedPrincipal = housePrice - downPayment;
         let currentRate = interestRate;
@@ -108,7 +107,7 @@ export default function MortgageFeature(props: Props) {
     const uniqueMonthlyPayments = useMemo<MortgagePayment[]>(() => {
         const payments = new Map();
         for (const item of monthlyPayments) {
-            if (!payments.has(item.monthlyPayment)) {
+            if (item && !payments.has(item.monthlyPayment)) {
                 payments.set(item.monthlyPayment, item);
             }
         }
@@ -119,9 +118,9 @@ export default function MortgageFeature(props: Props) {
             return 0;
         }
         const totalPayments = monthlyPayments.reduce((acc, item) => (
-            acc + item.monthlyPayment * 12
+            acc + (item?.monthlyPayment ?? 0) * 12
         ), 0);
-        return totalPayments - (housePrice - downPayment);
+        return Math.max(totalPayments - (housePrice - downPayment), 0);
     }, [housePrice, downPayment, monthlyPayments]);
     const totalStrata = useMemo(() => calculateCompoundPercentsSum({
         value: strata * 12,
@@ -182,7 +181,7 @@ export default function MortgageFeature(props: Props) {
         const strataCoast = getMonthlyStrataCoast(year);
         const monthlyTaxes = getMonthlyTaxes(year);
         const maintenance = getMonthlyMaintenance(year);
-        return monthlyPayments[year].monthlyPayment + strataCoast + monthlyTaxes + maintenance;
+        return (monthlyPayments[year]?.monthlyPayment ?? 0) + strataCoast + monthlyTaxes + maintenance;
     }, [monthlyPayments, getMonthlyStrataCoast, getMonthlyTaxes, getMonthlyMaintenance]);
 
     const calculateMonthlyInvestment = useCallback((year: number) => {
@@ -324,7 +323,7 @@ export default function MortgageFeature(props: Props) {
                         <Box>
                             Monthly payment:&nbsp;
                             <CurrencyValue
-                                value={monthlyPayments[0].monthlyPayment}
+                                value={monthlyPayments[0]?.monthlyPayment}
                             />
                             <HelpIcon
                                 title={
@@ -414,28 +413,26 @@ export default function MortgageFeature(props: Props) {
                     <TableBody>
                         <TableRow>
                             <TableCell sx={{ pl: 0 }}>
-                                <PercentField
+                                <NumericField
                                     label="Interest rate"
                                     value={interestRate}
+                                    adornment="%"
                                     sx={{ m: 1, minWidth: '150px' }}
                                     onChange={setInterestRateHandler}
                                 />
-                                <TextField
+                                <NumericField
                                     label="Period length (years)"
                                     value={interestRateLength}
-                                    type="number"
-                                    variant="outlined"
-                                    size="small"
-                                    InputProps={{ inputProps: { min: 1, max: 30 } }}
-                                    sx={{ m: 1, width: '150px' }}
-                                    onChange={(event) => {
-                                        setInterestRateLengthHandler(Number(event.target.value));
-                                    }}
+                                    min={1}
+                                    max={years}
+                                    sx={{ m: 1, minWidth: '150px' }}
+                                    onChange={setInterestRateLengthHandler}
                                 />
-                                <PercentField
+                                <NumericField
                                     label="Increase per period"
                                     value={interestRateIncrease}
                                     min={-10}
+                                    adornment="%"
                                     sx={{ m: 1, minWidth: '150px' }}
                                     onChange={setInterestRateIncreaseHandler}
                                 />
@@ -452,9 +449,10 @@ export default function MortgageFeature(props: Props) {
                                     sx={{ m: 1, mr: 2, width: '150px' }}
                                     onChange={setStrataHandler}
                                 />
-                                <PercentField
+                                <NumericField
                                     label="Annual increase"
                                     value={strataAnnualIncrease}
+                                    adornment="%"
                                     sx={{ m: 1, width: '150px' }}
                                     onChange={setStrataAnnualIncreaseHandler}
                                 />
@@ -471,9 +469,10 @@ export default function MortgageFeature(props: Props) {
                                     sx={{ m: 1, mr: 2, width: '150px' }}
                                     onChange={setTaxesHandler}
                                 />
-                                <PercentField
+                                <NumericField
                                     label="Annual increase"
                                     value={taxesAnnualIncrease}
+                                    adornment="%"
                                     sx={{ m: 1, width: '150px' }}
                                     onChange={setTaxesAnnualIncreaseHandler}
                                 />
@@ -484,9 +483,10 @@ export default function MortgageFeature(props: Props) {
                         </TableRow>
                         <TableRow>
                             <TableCell sx={{ pl: 0 }}>
-                                <PercentField
+                                <NumericField
                                     label="Maintenance"
                                     value={houseMaintenance}
+                                    adornment="%"
                                     sx={{ m: 1, width: '150px' }}
                                     onChange={setHouseMaintenanceHandler}
                                 />
@@ -497,9 +497,10 @@ export default function MortgageFeature(props: Props) {
                         </TableRow>
                         <TableRow>
                             <TableCell sx={{ pl: 0 }}>
-                                <PercentField
+                                <NumericField
                                     label="House price annual increase"
                                     value={housePriceAnnualIncrease}
+                                    adornment="%"
                                     sx={{ m: 1, mr: 2, width: '150px' }}
                                     onChange={setHousePriceAnnualIncreaseHandler}
                                 />
@@ -534,7 +535,7 @@ export default function MortgageFeature(props: Props) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {[...Array(years)].map((item, key) => {
+                        {[...Array(Math.max(years, 0))].map((item, key) => {
                             const adjustedBudget = calculateCompoundPercents({
                                 value: budget,
                                 percent: budgetIncreaseRate,
@@ -560,7 +561,7 @@ export default function MortgageFeature(props: Props) {
                                                 <Box>
                                                     <Typography>
                                                         Mortgage:&nbsp;
-                                                        <CurrencyValue value={monthlyPayments[key].monthlyPayment} />
+                                                        <CurrencyValue value={monthlyPayments[key]?.monthlyPayment} />
                                                     </Typography>
                                                     <Typography>
                                                         Strata:&nbsp;

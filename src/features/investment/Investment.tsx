@@ -3,7 +3,6 @@ import {
     Box,
     Typography,
     Link,
-    TextField,
 } from '@mui/material';
 import { SxProps } from '@mui/system';
 import {
@@ -11,7 +10,7 @@ import {
     AccordionSummary,
     AccordionDetails,
     CurrencyField,
-    PercentField,
+    NumericField,
     CurrencyValue,
     CompoundSelector,
 } from 'src/components';
@@ -63,23 +62,18 @@ export default function InvestmentFeature(props: Props) {
                     />
                 </Box>
                 <Box sx={{ mb: 2, mr: 2 }}>
-                    <TextField
+                    <NumericField
                         label="Years"
                         value={years}
-                        type="number"
-                        variant="outlined"
-                        size="small"
-                        InputProps={{ inputProps: { min: 1 } }}
-                        sx={{ width: '100px' }}
-                        onChange={(event) => {
-                            setYears(Number(event.target.value));
-                        }}
+                        sx={{ minWidth: '150px' }}
+                        onChange={setYears}
                     />
                 </Box>
                 <Box sx={{ mb: 2, mr: 2 }}>
-                    <PercentField
+                    <NumericField
                         label="Return Rate"
                         value={returnRate}
+                        adornment="%"
                         sx={{ minWidth: '150px' }}
                         onChange={setReturnRate}
                     />

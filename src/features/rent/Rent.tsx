@@ -14,7 +14,7 @@ import {
     AccordionSummary,
     AccordionDetails,
     CurrencyField,
-    PercentField,
+    NumericField,
     CurrencyValue,
     HelpIcon,
 } from 'src/components';
@@ -128,9 +128,10 @@ export default function RentFeature(props: Props) {
                             sx={{ m: 1, mr: 2 }}
                             onChange={setRentPriceHandler}
                         />
-                        <PercentField
+                        <NumericField
                             label="Annual increase"
                             value={rentAnnualIncrease}
+                            adornment="%"
                             sx={{ m: 1, minWidth: '150px' }}
                             onChange={setRentAnnualIncreaseHandler}
                         />
@@ -159,7 +160,7 @@ export default function RentFeature(props: Props) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {[...Array(years)].map((item, key) => {
+                        {[...Array(Math.max(years, 0))].map((item, key) => {
                             const rent = calculateCompoundPercents({
                                 value: rentPrice,
                                 percent: rentAnnualIncrease,

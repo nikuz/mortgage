@@ -2,7 +2,6 @@ import React, { useState, useContext, useCallback, useEffect } from 'react';
 import {
     Container,
     Box,
-    TextField,
     Typography,
     IconButton,
     useTheme,
@@ -10,7 +9,7 @@ import {
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import BrightnessHighIcon from '@mui/icons-material/BrightnessHigh';
 import {
-    PercentField,
+    NumericField,
     CurrencyField,
     ThemeContext,
     CompoundSelector,
@@ -139,15 +138,17 @@ export default function App() {
                     sx={{ mb: 2, mr: 2 }}
                     onChange={setBudgetHandler}
                 />
-                <PercentField
+                <NumericField
                     label="Budget increase rate"
                     value={budgetIncreaseRate}
+                    adornment="%"
                     sx={{ mb: 2, mr: 2, minWidth: '150px' }}
                     onChange={setBudgetIncreaseRateHandler}
                 />
-                <PercentField
+                <NumericField
                     label="Investment return rate"
                     value={investmentReturnRate}
+                    adornment="%"
                     sx={{ mb: 2, mr: 2, minWidth: '150px' }}
                     onChange={setInvestmentReturnRateHandler}
                 />
@@ -156,17 +157,13 @@ export default function App() {
                     sx={{ mb: 2, mr: 2 }}
                     onChange={setCompound}
                 />
-                <TextField
+                <NumericField
                     label="Years"
                     value={years}
-                    type="number"
-                    variant="outlined"
-                    size="small"
-                    InputProps={{ inputProps: { min: 1, max: 30 } }}
+                    min={1}
+                    max={30}
                     sx={{ mb: 2, width: '100px' }}
-                    onChange={(event) => {
-                        setYearsHandler(Number(event.target.value));
-                    }}
+                    onChange={setYearsHandler}
                 />
             </Box>
 

@@ -3,7 +3,7 @@ import { SxProps } from '@mui/system';
 import { Typography } from '@mui/material';
 
 interface Props {
-    value: number,
+    value?: number,
     component?: React.ElementType,
     sx?: SxProps,
 }
@@ -21,7 +21,7 @@ export default function CurrencyValue(props: Props) {
                 style: 'currency',
                 currency: 'USD',
                 maximumFractionDigits: 0,
-            }).format(value)}
+            }).format(value ?? 0)}
         </Typography>
     );
 }
