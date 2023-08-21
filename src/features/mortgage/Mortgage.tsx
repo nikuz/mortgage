@@ -144,11 +144,6 @@ export default function MortgageFeature(props: Props) {
         }
         return result;
     }, [houseMaintenance, housePriceAnnualIncrease, housePrice, years]);
-    const finalHousePrice = useMemo(() => calculateCompoundPercents({
-        value: housePrice,
-        percent: housePriceAnnualIncrease,
-        years: years,
-    }), [housePrice, housePriceAnnualIncrease, years]);
     const overallExpenses = useMemo(() => (
         interest + totalStrata + totalTaxes + totalHouseMaintenance
     ), [interest, totalStrata, totalTaxes, totalHouseMaintenance]);
@@ -208,6 +203,14 @@ export default function MortgageFeature(props: Props) {
         }
         return result;
     }, [savings, downPayment, investmentReturnRate, calculateMonthlyInvestment, compound]);
+
+    const calculateHousePrice = useCallback((years: number) => {
+        return calculateCompoundPercents({
+            value: housePrice,
+            percent: housePriceAnnualIncrease,
+            years: years,
+        });
+    }, [housePrice, housePriceAnnualIncrease]);
 
     const setHousePriceHandler = useCallback((value: number) => {
         setHousePrice(value);
@@ -366,7 +369,7 @@ export default function MortgageFeature(props: Props) {
                         <Box>
                             Balance in {years} years:&nbsp;
                             <CurrencyValue
-                                value={calculateInvestmentBalance(years) + finalHousePrice}
+                                value={calculateInvestmentBalance(years) + calculateHousePrice(years)}
                                 sx={{ fontWeight: 'bold' }}
                             />
                             <HelpIcon
@@ -378,7 +381,7 @@ export default function MortgageFeature(props: Props) {
                                         </Typography>
                                         <Typography>
                                             House price:&nbsp;
-                                            <CurrencyValue value={finalHousePrice} />
+                                            <CurrencyValue value={calculateHousePrice(years)} />
                                         </Typography>
                                     </Box>
                                 }
@@ -506,7 +509,7 @@ export default function MortgageFeature(props: Props) {
                                 />
                             </TableCell>
                             <TableCell align="right">
-                                <CurrencyValue value={finalHousePrice} />
+                                <CurrencyValue value={calculateHousePrice(years)} />
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -531,6 +534,9 @@ export default function MortgageFeature(props: Props) {
                                         </Typography>
                                     }
                                 />
+                            </TableCell>
+                            <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                                Total balance
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -584,6 +590,27 @@ export default function MortgageFeature(props: Props) {
                                     </TableCell>
                                     <TableCell align="right">
                                         <CurrencyValue value={calculateInvestmentBalance(key + 1)} />
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <CurrencyValue
+                                            value={
+                                                calculateInvestmentBalance(key + 1) + calculateHousePrice(key + 1)
+                                            }
+                                        />
+                                        <HelpIcon
+                                            title={(
+                                                <Box>
+                                                    <Typography>
+                                                        Investment:&nbsp;
+                                                        <CurrencyValue value={calculateInvestmentBalance(key + 1)} />
+                                                    </Typography>
+                                                    <Typography>
+                                                        House Price:&nbsp;
+                                                        <CurrencyValue value={calculateHousePrice(key + 1)} />
+                                                    </Typography>
+                                                </Box>
+                                            )}
+                                        />
                                     </TableCell>
                                 </TableRow>
                             );
